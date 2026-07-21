@@ -12,7 +12,8 @@
               <ColumnDefinition Width="0.3*"/>
           </Grid.ColumnDefinitions>
 
-          <edit:TextEditor Grid.Column="0"
+          <edit:TextEditor x:Name="CodeEditor"
+                           Grid.Column="0"
                            HorizontalAlignment="Stretch"
                            VerticalAlignment="Stretch"
                            ShowLineNumbers="True"
