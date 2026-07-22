@@ -27,4 +27,8 @@
     <PackageReference Include="FluentAvaloniaUI" Version="3.0.2" />
     <PackageReference Include="TextMateSharp.Grammars" Version="2.0.4" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Zinc.Core\Zinc.Core.csproj" />
+  </ItemGroup>
 </Project>
