@@ -1,4 +1,5 @@
 <Window xmlns="https://github.com/avaloniaui"
+        xmlns:controls="using:FluentAvalonia.UI.Controls"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Zinc.ViewModels"
         xmlns:views="using:Zinc.Views"
@@ -15,7 +16,20 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
+    
+    <DockPanel>
+        <Grid Name="TitleBarHost"
+              Background="Transparent"
+              DockPanel.Dock="Top"
+              WindowDecorationProperties.ElementRole="TitleBar">
+            <Menu FontSize="14"
+                  WindowDecorationProperties.ElementRole="User" >
+                <MenuItem Header="文件(_F)">
+                    <MenuItem Header="打开(_O)" Command="{Binding OpenFileCommand}"/>
+                </MenuItem>
+            </Menu> 
+        </Grid>
 
-    <views:MainView/>
-
+        <views:MainView/>
+    </DockPanel>
 </Window>
