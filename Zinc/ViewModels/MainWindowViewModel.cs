@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Threading.Tasks;
@@ -14,18 +15,18 @@ namespace Zinc.ViewModels
     public partial class MainWindowViewModel : ViewModelBase
     {
         private readonly ISettingsService _settings;
-        private readonly IFileService _file;
+        private readonly IFileService _fileservice;
+        private readonly IDialogService _dialogservice;
 
-        public static FilePickerFileType CodeAll { get; } = new("All Codes")
-        {
-            Patterns = new[] { "*.cpp", "*.c", "*.hpp", "*.h" },
-            AppleUniformTypeIdentifiers = new[] { "public.code" },
-            MimeTypes = new[] { "code/*" }
-        };
+        [ObservableProperty]
+        private string _editorContent = string.Empty;
+        [ObservableProperty]
+        private string _currentFilePath = string.Empty;
 
         public MainWindowViewModel()
         {
-            _file = new FileService();
+            _fileservice = new FileService();
+            _dialogservice = new DialogService();
             _settings = new SettingsService();
             _settings.Preload();
             ApplyTheme();
@@ -40,38 +41,29 @@ namespace Zinc.ViewModels
             {
                 Application.Current.RequestedThemeVariant = (Settings.AppStyle == "Dark")
                     ? ThemeVariant.Dark
-                    : (Settings.AppStyle == "Light") 
+                    : (Settings.AppStyle == "Light")
                     ? ThemeVariant.Light
                     : ThemeVariant.Default;
             }
         }
 
-        private Window GetOwner()
-        {
-            if (Avalonia.Application.Current?.ApplicationLifetime
-                is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                return desktop.MainWindow!;
-            }
-
-            throw new InvalidOperationException("无法获取所有者窗口");
-        }
-
         [RelayCommand]
-        private async Task OpenFile()
+        private async Task OpenFileAsync()
         {
-            var window = GetOwner();
-            var storage = window.StorageProvider;
-            var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions()
-            {
-                Title = "选择要打开的文件...",
-                FileTypeFilter = [CodeAll]
-            });
-            if (files.Count > 0)
-            {
-                var code = _file.LoadFile(files[0].Path.LocalPath);
-                Console.WriteLine(code);
-            }
+            var filters = new[]
+        {
+            new FileFilter("所有文件", "*.*"),
+            new FileFilter("文本文件", "*.txt"),
+            new FileFilter("C# 文件", "*.cs"),
+            new FileFilter("XML 文件", "*.xml"),
+            new FileFilter("JSON 文件", "*.json")
+        };
+
+            var filePath = await _dialogservice.OpenFilePathAsync("打开代码文件...", filters);
+            if (string.IsNullOrEmpty(filePath)) return;
+
+            EditorContent = _fileservice.LoadFile(filePath);
+            CurrentFilePath = filePath;
         }
     }
 }

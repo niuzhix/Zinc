@@ -26,6 +26,7 @@
                   WindowDecorationProperties.ElementRole="User" >
                 <MenuItem Header="文件(_F)">
                     <MenuItem Header="打开(_O)" Command="{Binding OpenFileCommand}"/>
+                    <TextBlock Text="{Binding EditorContent}"/>
                 </MenuItem>
             </Menu> 
         </Grid>
