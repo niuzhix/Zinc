@@ -17,20 +17,33 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
     
-    <DockPanel>
-        <Grid Name="TitleBarHost"
-              Background="Transparent"
-              DockPanel.Dock="Top"
-              WindowDecorationProperties.ElementRole="TitleBar">
-            <Menu FontSize="14"
-                  WindowDecorationProperties.ElementRole="User" >
-                <MenuItem Header="文件(_F)">
-                    <MenuItem Header="打开(_O)" Command="{Binding OpenFileCommand}"/>
-                    <TextBlock Text="{Binding EditorContent}"/>
-                </MenuItem>
-            </Menu> 
-        </Grid>
+    <Grid Name="TitleBarHost"
+          Background="Transparent"
+          DockPanel.Dock="Top">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <views:MainView/>
-    </DockPanel>
+        <Rectangle Grid.Row="0"
+                   Grid.Column="1"
+                   Fill="Transparent"
+                   WindowDecorationProperties.ElementRole="TitleBar"/>
+
+        <Menu Grid.Row="0"
+              Grid.Column="0"
+              WindowDecorationProperties.ElementRole="User">
+            <MenuItem Header="文件(_F)">
+                <MenuItem Header="打开(_O)" Command="{Binding OpenFileCommand}"/>
+                <TextBlock Text="{Binding EditorContent}"/>
+            </MenuItem>
+        </Menu> 
+        <views:MainView Grid.Row="1"
+                        Grid.ColumnSpan="2"
+                        WindowDecorationProperties.ElementRole="User"/>
+    </Grid>
 </Window>
