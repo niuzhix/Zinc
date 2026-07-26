@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using AvaloniaEdit.TextMate;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
@@ -6,9 +7,14 @@ using Zinc.Core.Services;
 
 namespace Zinc.ViewModels
 {
-    public partial class EditorViewModel : ViewModelBase
+    public partial class EditorViewModel : ObservableObject
     {
         private readonly ISettingsService _settings;
+
+        [ObservableProperty]
+        private string header = string.Empty;
+        [ObservableProperty]
+        private string content = string.Empty;
 
         public EditorViewModel()
         {

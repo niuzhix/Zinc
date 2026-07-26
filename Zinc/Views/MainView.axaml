@@ -2,8 +2,39 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:views="using:Zinc.Views"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             xmlns:vm="using:Zinc.ViewModels"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Zinc.Views.MainView">
-  <views:EditorView/>
+             x:Class="Zinc.Views.MainView"
+             x:DataType="vm:MainViewModel">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ui:FATabView Name="TabView"
+                      Grid.Row="0"
+                      TabItemsSource="{Binding Tabs}"
+                      SelectedItem="{Binding SelectedTab}"
+                      AddTabButtonCommand="{Binding AddTabCommand}"
+                      TabCloseRequested="TabView_TabCloseRequested"
+                      TabWidthMode="Equal"
+                      CloseButtonOverlayMode="Auto"
+                      TabStripLocation="Top"
+                      CanReorderTabs="True"
+                      CanDragTabs="True">
+
+            <ui:FATabView.TabItemTemplate>
+                <DataTemplate DataType="vm:EditorViewModel">
+                    <ui:FATabViewItem Header="{Binding Header}">
+                        <ui:FATabViewItem.Content>
+                            <views:EditorView DataContext="{Binding .}"/>
+                        </ui:FATabViewItem.Content>
+                    </ui:FATabViewItem>
+                </DataTemplate>
+            </ui:FATabView.TabItemTemplate>
+        </ui:FATabView>
+    </Grid>
 </UserControl>

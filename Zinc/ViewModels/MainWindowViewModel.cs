@@ -12,12 +12,14 @@ using Zinc.Core.Services;
 
 namespace Zinc.ViewModels
 {
-    public partial class MainWindowViewModel : ViewModelBase
+    public partial class MainWindowViewModel : ObservableObject
     {
         private readonly ISettingsService _settings;
         private readonly IFileService _fileservice;
         private readonly IDialogService _dialogservice;
 
+        [ObservableProperty]
+        private MainViewModel _mainViewModel = new();
         [ObservableProperty]
         private string _editorContent = string.Empty;
         [ObservableProperty]

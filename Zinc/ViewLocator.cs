@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Zinc.ViewModels;
@@ -32,7 +33,7 @@ namespace Zinc
 
         public bool Match(object? data)
         {
-            return data is ViewModelBase;
+            return data is ObservableObject;
         }
     }
 }

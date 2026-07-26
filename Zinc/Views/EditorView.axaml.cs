@@ -13,7 +13,6 @@ public partial class EditorView : UserControl
     public EditorView()
     {
         InitializeComponent();
-        DataContext = new EditorViewModel();
 
         var  _registryOptions = new RegistryOptions(ThemeName.DarkPlus);
         var _textMateInstallation = CodeEditor.InstallTextMate(_registryOptions);
