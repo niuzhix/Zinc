@@ -8,33 +8,14 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Zinc.Views.MainView"
              x:DataType="vm:MainViewModel">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
 
-        <ui:FATabView Name="TabView"
-                      Grid.Row="0"
-                      TabItemsSource="{Binding Tabs}"
-                      SelectedItem="{Binding SelectedTab}"
-                      AddTabButtonCommand="{Binding AddTabCommand}"
-                      TabCloseRequested="TabView_TabCloseRequested"
-                      TabWidthMode="Equal"
-                      CloseButtonOverlayMode="Auto"
-                      TabStripLocation="Top"
-                      CanReorderTabs="True"
-                      CanDragTabs="True">
-
-            <ui:FATabView.TabItemTemplate>
-                <DataTemplate DataType="vm:EditorViewModel">
-                    <ui:FATabViewItem Header="{Binding Header}">
-                        <ui:FATabViewItem.Content>
-                            <views:EditorView DataContext="{Binding .}"/>
-                        </ui:FATabViewItem.Content>
-                    </ui:FATabViewItem>
-                </DataTemplate>
-            </ui:FATabView.TabItemTemplate>
-        </ui:FATabView>
-    </Grid>
+    <ui:FATabView Name="TabView"
+                  Grid.Row="0"
+                  AddTabButtonClick="TabView_AddTabButtonClick"
+                  TabCloseRequested="TabView_TabCloseRequested"
+                  TabWidthMode="Equal"
+                  CloseButtonOverlayMode="Auto"
+                  TabStripLocation="Top"
+                  CanReorderTabs="True"
+                  CanDragTabs="True"/>
 </UserControl>

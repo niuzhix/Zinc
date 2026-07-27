@@ -10,9 +10,6 @@ namespace Zinc.ViewModels
     public partial class EditorViewModel : ObservableObject
     {
         private readonly ISettingsService _settings;
-
-        [ObservableProperty]
-        private string header = string.Empty;
         [ObservableProperty]
         private string content = string.Empty;
 
