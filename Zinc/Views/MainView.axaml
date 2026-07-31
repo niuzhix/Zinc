@@ -14,7 +14,7 @@
                   AddTabButtonClick="TabView_AddTabButtonClick"
                   TabCloseRequested="TabView_TabCloseRequested"
                   TabWidthMode="Equal"
-                  CloseButtonOverlayMode="Auto"
+                  CloseButtonOverlayMode="OnPointerOver"
                   TabStripLocation="Top"
                   CanReorderTabs="True"
                   CanDragTabs="True"/>
