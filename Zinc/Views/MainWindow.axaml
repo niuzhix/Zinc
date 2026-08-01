@@ -16,35 +16,6 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-    
-    <Grid Name="TitleBarHost"
-          Background="Transparent"
-          DockPanel.Dock="Top">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <Rectangle Grid.Row="0"
-                   Grid.Column="1"
-                   Fill="Transparent"
-                   WindowDecorationProperties.ElementRole="TitleBar"/>
-
-        <Menu Grid.Row="0"
-              Grid.Column="0"
-              WindowDecorationProperties.ElementRole="User">
-            <MenuItem Header="文件(_F)">
-                <MenuItem Header="打开(_O)" Command="{Binding OpenFileCommand}"/>
-                <TextBlock Text="{Binding EditorContent}"/>
-            </MenuItem>
-        </Menu> 
-        <views:MainView Grid.Row="1"
-                        Grid.ColumnSpan="2"
-                        DataContext="{Binding MainViewModel}"
-                        WindowDecorationProperties.ElementRole="User"/>
-    </Grid>
+ 
+    <views:MainView DataContext="{Binding MainViewModel}"/>
 </Window>

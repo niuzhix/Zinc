@@ -8,14 +8,39 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Zinc.Views.MainView"
              x:DataType="vm:MainViewModel">
+    
+    <Grid Name="TitleBarHost"
+          Background="Transparent"
+          DockPanel.Dock="Top">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-    <ui:FATabView Name="TabView"
-                  Grid.Row="0"
-                  AddTabButtonClick="TabView_AddTabButtonClick"
-                  TabCloseRequested="TabView_TabCloseRequested"
-                  TabWidthMode="Equal"
-                  CloseButtonOverlayMode="OnPointerOver"
-                  TabStripLocation="Top"
-                  CanReorderTabs="True"
-                  CanDragTabs="True"/>
+        <Rectangle Grid.Row="0"
+                   Grid.Column="1"
+                   Fill="Transparent"
+                   WindowDecorationProperties.ElementRole="TitleBar"/>
+
+        <Menu Grid.Row="0"
+              Grid.Column="0"
+              WindowDecorationProperties.ElementRole="User">
+            <MenuItem Header="нд╪Ч(_F)">
+            </MenuItem>
+        </Menu> 
+        <ui:FATabView Name="TabView"
+                      Grid.Row="1"
+                      Grid.ColumnSpan="2"
+                      AddTabButtonClick="TabView_AddTabButtonClick"
+                      TabCloseRequested="TabView_TabCloseRequested"
+                      TabWidthMode="Equal"
+                      CloseButtonOverlayMode="OnPointerOver"
+                      TabStripLocation="Top"
+                      CanReorderTabs="True"
+                      CanDragTabs="True"/>
+    </Grid>
 </UserControl>
