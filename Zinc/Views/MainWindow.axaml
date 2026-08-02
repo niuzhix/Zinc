@@ -17,5 +17,5 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
  
-    <views:MainView DataContext="{Binding MainViewModel}"/>
+    <views:MainView/>
 </Window>

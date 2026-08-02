@@ -29,7 +29,7 @@
         <Menu Grid.Row="0"
               Grid.Column="0"
               WindowDecorationProperties.ElementRole="User">
-            <MenuItem Header="ÎÄ¼þ(_F)">
+            <MenuItem Header="æ–‡ä»¶(_F)">
             </MenuItem>
         </Menu> 
         <ui:FATabView Name="TabView"
