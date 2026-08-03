@@ -1,0 +1,261 @@
+name: Build, Package and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows
+            arch: x64
+            runs-on: windows-latest
+            runtime: win-x64
+            output_name: Windows-x64
+          - os: windows
+            arch: arm64
+            runs-on: windows-latest
+            runtime: win-arm64
+            output_name: Windows-arm64
+          
+          - os: linux
+            arch: x64
+            runs-on: ubuntu-latest
+            runtime: linux-x64
+            output_name: Linux-x64
+          - os: linux
+            arch: arm64
+            runs-on: ubuntu-latest
+            runtime: linux-arm64
+            output_name: Linux-arm64
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build solution
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Publish executable project
+      run: |
+        dotnet publish ./Zinc/Zinc.csproj `
+          --configuration Release `
+          --runtime ${{ matrix.runtime }} `
+          --self-contained true `
+          -p:PublishSingleFile=true `
+          -p:DebugType=none `
+          -p:DebugSymbols=false `
+          -o ./publish/${{ matrix.runtime }}
+      shell: pwsh
+
+    - name: Prepare artifact name
+      id: prepare
+      run: |
+        $appName = "Zinc"
+        $artifactName = "$appName-${{ matrix.output_name }}"
+        echo "ARTIFACT_NAME=$artifactName" >> $env:GITHUB_ENV
+        echo "ZIP_PATH=./dist/$artifactName.zip" >> $env:GITHUB_ENV
+        echo "MD5_PATH=./dist/$artifactName.zip.md5" >> $env:GITHUB_ENV
+        
+        New-Item -ItemType Directory -Force -Path ./dist | Out-Null
+      shell: pwsh
+
+    - name: Package application
+      run: |
+        $source = "./publish/${{ matrix.runtime }}"
+        $destination = "${{ env.ZIP_PATH }}"
+        
+        Compress-Archive -Path $source/* -DestinationPath $destination -Force
+      shell: pwsh
+
+    - name: Generate MD5 checksum
+      run: |
+        $zipPath = "${{ env.ZIP_PATH }}"
+        $md5Path = "${{ env.MD5_PATH }}"
+        
+        if (Test-Path $zipPath) {
+          $md5 = [System.Security.Cryptography.MD5]::Create()
+          $fileStream = [System.IO.File]::OpenRead($zipPath)
+          $hash = $md5.ComputeHash($fileStream)
+          $fileStream.Close()
+          $hashString = [System.BitConverter]::ToString($hash).Replace("-", "").ToLower()
+          
+          "$hashString  $(Split-Path $zipPath -Leaf)" | Out-File -FilePath $md5Path -Encoding ascii
+          
+          echo "MD5_HASH=$hashString" >> $env:GITHUB_ENV
+          echo "MD5_FILE=$(Split-Path $md5Path -Leaf)" >> $env:GITHUB_ENV
+        } else {
+          Write-Error "ZIP file not found: $zipPath"
+          exit 1
+        }
+      shell: pwsh
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: |
+          ${{ env.ZIP_PATH }}
+          ${{ env.MD5_PATH }}
+        if-no-files-found: error
+
+  create-release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./dist
+        merge-multiple: true
+
+    - name: List artifacts
+      run: |
+        echo "## 构建产物" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| 文件 | 大小 | MD5 |" >> $GITHUB_STEP_SUMMARY
+        echo "|------|------|-----|" >> $GITHUB_STEP_SUMMARY
+        
+        echo "# MD5 Checksums" > ./dist/checksums.txt
+        echo "" >> ./dist/checksums.txt
+        
+        for file in ./dist/*.zip; do
+          if [ -f "$file" ]; then
+            size=$(du -h "$file" | cut -f1)
+            name=$(basename "$file")
+            md5file="${file}.md5"
+            
+            if [ -f "$md5file" ]; then
+              md5=$(cat "$md5file" | cut -d' ' -f1)
+              echo "| $name | $size | \`$md5\` |" >> $GITHUB_STEP_SUMMARY
+              echo "$md5  $name" >> ./dist/checksums.txt
+            else
+              echo "| $name | $size | - |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+        done
+
+        echo "CHECKSUMS_FILE=./dist/checksums.txt" >> $GITHUB_ENV
+
+    - name: Generate Release Notes
+      id: release_notes
+      run: |
+        TAG="${{ github.ref_name }}"
+        PREVIOUS_TAG=$(git describe --tags --abbrev=0 $TAG^ 2>/dev/null || echo "")
+        
+        if [ -n "$PREVIOUS_TAG" ]; then
+          COMMITS=$(git log --pretty=format:"- %s" $PREVIOUS_TAG..$TAG)
+        else
+          COMMITS=$(git log --pretty=format:"- %s" --max-count=50)
+        fi
+        
+        CHANGELOG_CONTENT=""
+        if [ -f "CHANGELOG.md" ]; then
+          CHANGELOG_CONTENT=$(awk "/## \[$TAG\]/{flag=1; next} /## \[/{flag=0} flag" CHANGELOG.md)
+        fi
+        
+        MD5_TABLE=""
+        if [ -f "./dist/checksums.txt" ]; then
+          MD5_TABLE=$(cat ./dist/checksums.txt | sed 's/^/    /' | tail -n +3)
+        fi
+        
+        cat > release-notes.md << EOF
+        # Release $TAG
+        
+        | 平台 | 架构 | 下载链接 |
+        |------|------|----------|
+        | Windows | x64 | [Zinc-Windows-x64.zip](https://github.com/${{ github.repository }}/releases/download/$TAG/Zinc-Windows-x64.zip) |
+        | Windows | ARM64 | [Zinc-Windows-arm64.zip](https://github.com/${{ github.repository }}/releases/download/$TAG/Zinc-Windows-arm64.zip) |
+        | Linux | x64 | [Zinc-Linux-x64.zip](https://github.com/${{ github.repository }}/releases/download/$TAG/Zinc-Linux-x64.zip) |
+        | Linux | ARM64 | [Zinc-Linux-arm64.zip](https://github.com/${{ github.repository }}/releases/download/$TAG/Zinc-Linux-arm64.zip) |
+        
+        ## MD5 校验和
+        \`\`\`
+        $MD5_TABLE
+        \`\`\`
+        
+        ## 系统要求
+        - **Windows**: Windows 10/11 或 Windows Server 2019+ (x64/ARM64)
+        - **Linux**: glibc 2.35+ (x64/ARM64)
+        - **运行时**: .NET 10.0 (已包含，无需单独安装)
+        
+        ## 更新内容
+        
+        $([ -n "$CHANGELOG_CONTENT" ] && echo "$CHANGELOG_CONTENT" || echo "$COMMITS")
+        
+        ## 安装说明
+        1. 下载对应平台的 ZIP 文件
+        2. 验证文件完整性（可选）：
+           \`\`\`bash
+           # Windows (PowerShell)
+           Get-FileHash Zinc-Windows-x64.zip -Algorithm MD5
+           
+           # Linux/macOS
+           md5sum Zinc-Linux-x64.zip
+           \`\`\`
+        3. 解压到您想要的目录
+        4. 运行可执行文件：
+           - Windows: 双击 .exe 文件
+           - Linux: 终端执行 ./Zinc
+        
+        ## 已知问题
+        > 如有问题，请在此处添加已知问题说明
+        EOF
+        
+        echo "RELEASE_NOTES_PATH=./release-notes.md" >> $GITHUB_ENV
+        echo "TAG_NAME=$TAG" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: ${{ env.TAG_NAME }}
+        tag_name: ${{ github.ref_name }}
+        body_path: ${{ env.RELEASE_NOTES_PATH }}
+        draft: false
+        prerelease: false
+        files: |
+          ./dist/*.zip
+          ./dist/*.md5
+          ./dist/checksums.txt
+        token: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Summary
+      run: |
+        echo "## ✅ Release 创建成功" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**版本**: ${{ env.TAG_NAME }}" >> $GITHUB_STEP_SUMMARY
+        echo "**发布地址**: https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG_NAME }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### MD5 校验文件" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "所有 MD5 校验和已包含在 Release 附件中：" >> $GITHUB_STEP_SUMMARY
+        echo "- 每个 ZIP 文件对应一个 .md5 文件" >> $GITHUB_STEP_SUMMARY
+        echo "- 汇总文件: \`checksums.txt\`" >> $GITHUB_STEP_SUMMARY
