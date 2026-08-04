@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using FluentAvalonia.Interop;
 using FluentAvalonia.UI.Windowing;
 
 namespace Zinc.Views
@@ -9,6 +10,7 @@ namespace Zinc.Views
         {
             InitializeComponent();
             TitleBar.ExtendsContentIntoTitleBar = true;
+            TitleBar.Height = 48;
         }
     }
 }

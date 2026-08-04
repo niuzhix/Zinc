@@ -10,10 +10,9 @@
              x:DataType="vm:MainViewModel">
     
     <Grid Name="TitleBarHost"
-          Background="Transparent"
-          DockPanel.Dock="Top">
+          Background="Transparent">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="48"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
