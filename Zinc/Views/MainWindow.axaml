@@ -16,32 +16,6 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-
-    <Window.Styles>
-    <ControlTheme x:Key="{x:Type WindowDrawnDecorations}" 
-                  TargetType="WindowDrawnDecorations">
-        <Setter Property="DefaultTitleBarHeight" Value="48"/>
-        <Setter Property="Template">
-            <WindowDrawnDecorationsTemplate>
-                <WindowDrawnDecorationsContent>
-                    <WindowDrawnDecorationsContent.Overlay>
-                        <DockPanel Height="{TemplateBinding TitleBarHeight}">
-                            <StackPanel DockPanel.Dock="Right" 
-                                        Orientation="Horizontal">
-                                <Button x:Name="PART_MinimizeButton" 
-                                        Height="48" Width="48" Content="─"/>
-                                <Button x:Name="PART_MaximizeButton" 
-                                        Height="48" Width="48" Content="□"/>
-                                <Button x:Name="PART_CloseButton" 
-                                        Height="48" Width="48" Content="✕"/>
-                            </StackPanel>
-                        </DockPanel>
-                    </WindowDrawnDecorationsContent.Overlay>
-                </WindowDrawnDecorationsContent>
-            </WindowDrawnDecorationsTemplate>
-        </Setter>
-    </ControlTheme>
-</Window.Styles>
  
     <views:MainView/>
 </Window>
