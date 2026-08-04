@@ -199,8 +199,8 @@ jobs:
               echo "| \`${fname}\` | \`${hash}\` |"
             done
             echo ""
-            echo "> [!IMPORTANT] Caution  "
-            echo "> 下载后请核对 SHA512 校验和。"
+            echo "> [!IMPORTANT]   "
+            echo "> 下载时请注意核对文件 SHA512 是否正确。"
           } >> notes.md
 
           echo "=== Generated Release Notes ==="
@@ -219,7 +219,6 @@ jobs:
           fi
 
           gh release create "$TAG" ./artifacts/* \
-            --draft \
             --repo ${{ github.repository }} \
             --title "$TAG" \
             --notes-file notes.md \
