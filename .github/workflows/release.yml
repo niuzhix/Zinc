@@ -1,4 +1,4 @@
-name:  Release
+name: Release
 
 on:
   push:
@@ -7,10 +7,10 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., v1.0.0)'
+        description: 'Release version (e.g., 1.0.0 或 v1.0.0)'
         required: true
         type: string
-      prelease:
+      prerelease:
         description: 'Is this a pre-release?'
         required: false
         default: false
@@ -28,6 +28,9 @@ jobs:
   build:
     name: Build ${{ matrix.os }} ${{ matrix.arch }}
     runs-on: ${{ matrix.runs-on }}
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      tag: ${{ steps.ver.outputs.tag }}
     strategy:
       fail-fast: false
       matrix:
@@ -36,47 +39,48 @@ jobs:
             arch: x64
             runs-on: windows-latest
             runtime: win-x64
-            output_name: Windows-x64
           - os: windows
             arch: arm64
             runs-on: windows-latest
             runtime: win-arm64
-            output_name: Windows-arm64
-          
           - os: linux
             arch: x64
             runs-on: ubuntu-latest
             runtime: linux-x64
-            output_name: Linux-x64
           - os: linux
             arch: arm64
             runs-on: ubuntu-latest
             runtime: linux-arm64
-            output_name: Linux-arm64
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-  
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-     
+
       - name: Extract Version
         id: ver
         shell: pwsh
         run: |
           if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
-            $v = '${{ github.event.inputs.version }}'
+            $raw = '${{ github.event.inputs.version }}'
           } else {
-            $v = '${{ github.ref_name }}' -replace '^v',''
+            $raw = '${{ github.ref_name }}'
           }
-          Write-Host "Version: $v"
-          "version=$v" >> $env:GITHUB_OUTPUT
-      
+          $ver = $raw -replace '^v',''
+          $tag = $ver
+          if (-not $tag.StartsWith('v')) { $tag = 'v' + $tag }
+
+          Write-Host "MSBuild Version: $ver"
+          Write-Host "Git Tag: $tag"
+          "version=$ver" >> $env:GITHUB_OUTPUT
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
       - name: Publish App
         shell: pwsh
         run: |
@@ -88,27 +92,27 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:Version=${{ steps.ver.outputs.version }} `
             -o ./publish
-  
+
       - name: Archive
         shell: pwsh
         run: |
-          $out = "Zinc_app_${{ matrix.os }}_${{matrix.arch}}_${{ steps.ver.outputs.version }}_selfContained.zip"
+          $out = "Zinc_app_${{ matrix.os }}_${{ matrix.arch }}_${{ steps.ver.outputs.version }}_selfContained.zip"
           Compress-Archive -Path ./publish/* -DestinationPath $out
           Write-Host "Created $out"
-  
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-${{ matrix.arch }}
-          path: Zinc_app_${{ matrix.os }}_${{matrix.arch}}_${{ steps.ver.outputs.version }}_selfContained.zip
-  
+          path: Zinc_app_${{ matrix.os }}_${{ matrix.arch }}_${{ steps.ver.outputs.version }}_selfContained.zip
+
   release:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -122,67 +126,101 @@ jobs:
           pattern: '*'
           merge-multiple: true
 
-      # 1. 自动计算 SHA512，生成 Markdown 表格
-      - name: Generate Checksum Table
+      - name: Generate Release Notes & Checksums
         run: |
-          echo "## 📦 校验和（SHA512）" > checksums_table.md
-          echo "" >> checksums_table.md
-          echo "| 文件名 | SHA512 |" >> checksums_table.md
-          echo "|--------|--------|" >> checksums_table.md
-          
-          for f in ./artifacts/*; do
-            [ -f "$f" ] || continue
-            fname=$(basename "$f")
-            hash=$(sha512sum "$f" | awk '{print $1}')
-            echo "| \`$fname\` | \`$hash\` |" >> checksums_table.md
-          done
-          
-          echo "" >> checksums_table.md
-          echo "> 下载后请核对 SHA512 校验和。" >> checksums_table.md
-          
-          echo "=== 生成的表格 ==="
-          cat checksums_table.md
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || true)
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..HEAD"
+          else
+            RANGE=""
+          fi
 
-      # 2. 先创建 Draft Release，让 GitHub 自动生成上半部分变更日志
-      - name: Create Draft Release (Auto Notes)
+          FEATS=$(git log $RANGE --pretty=format:"%s" --reverse | grep -E '^feat(\([^)]*\))?!?:' || true)
+          FIXES=$(git log $RANGE --pretty=format:"%s" --reverse | grep -E '^fix(\([^)]*\))?!?:' || true)
+          DOCS=$(git log $RANGE --pretty=format:"%s" --reverse | grep -E '^docs(\([^)]*\))?!?:' || true)
+          CI=$(git log $RANGE --pretty=format:"%s" --reverse | grep -E '^ci(\([^)]*\))?!?:' || true)
+          OTHER=$(git log $RANGE --pretty=format:"%s" --reverse | grep -Ev '^(feat|fix|docs|ci|chore|style|refactor|perf|test)(\([^)]*\))?!?:' || true)
+
+          fmt() {
+            local scope=$(echo "$1" | sed -E 's/^(feat|fix|docs|ci|chore|style|refactor|perf|test)\(([^)]*)\)!?:.*/\2/; t; d')
+            local body=$(echo "$1" | sed -E 's/^(feat|fix|docs|ci|chore|style|refactor|perf|test)(\(([^)]*)\))?!?: *//')
+            if [ -n "$scope" ]; then
+              echo "- 【${scope}】${body}"
+            else
+              echo "- ${body}"
+            fi
+          }
+
+          {
+            echo "## 🚀 新增功能与优化"
+            if [ -n "$FEATS" ]; then
+              echo "$FEATS" | while read -r line; do [ -n "$line" ] && fmt "$line"; done
+            else
+              echo "- 无"
+            fi
+
+            echo ""
+            echo "## 🐛 Bug 修复"
+            if [ -n "$FIXES" ]; then
+              echo "$FIXES" | while read -r line; do [ -n "$line" ] && fmt "$line"; done
+            else
+              echo "- 无"
+            fi
+
+            if [ -n "$DOCS" ]; then
+              echo ""
+              echo "## 📝 文档"
+              echo "$DOCS" | while read -r line; do [ -n "$line" ] && fmt "$line"; done
+            fi
+
+            if [ -n "$CI" ]; then
+              echo ""
+              echo "## 🔧 构建与工程"
+              echo "$CI" | while read -r line; do [ -n "$line" ] && fmt "$line"; done
+            fi
+
+            if [ -n "$OTHER" ]; then
+              echo ""
+              echo "## 📌 其他"
+              echo "$OTHER" | while read -r line; do [ -n "$line" ] && echo "- ${line}"; done
+            fi
+          } > notes.md
+
+          {
+            echo ""
+            echo "## 📦 校验和（SHA512）"
+            echo ""
+            echo "| 文件名 | SHA512 |"
+            echo "|--------|--------|"
+            for f in ./artifacts/*; do
+              [ -f "$f" ] || continue
+              fname=$(basename "$f")
+              hash=$(sha512sum "$f" | awk '{print $1}')
+              echo "| \`${fname}\` | \`${hash}\` |"
+            done
+            echo ""
+            echo "> [!IMPORTANT] Caution  "
+            echo "> 下载后请核对 SHA512 校验和。"
+          } >> notes.md
+
+          echo "=== Generated Release Notes ==="
+          cat notes.md
+
+      - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 统一 Tag 格式（自动加 v 前缀）
-          if [ -n "${{ github.ref_name }}" ]; then
-            TAG="${{ github.ref_name }}"
-          else
-            VER="${{ github.event.inputs.version }}"
-            case "$VER" in v*) TAG="$VER" ;; *) TAG="v$VER" ;; esac
+          TAG="${{ needs.build.outputs.tag }}"
+          IS_PRE="${{ github.event.inputs.prerelease || 'false' }}"
+
+          PRE_ARGS=""
+          if [ "$IS_PRE" = "true" ]; then
+            PRE_ARGS="--prerelease"
           fi
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          
-          gh release create "$TAG" \
+
+          gh release create "$TAG" ./artifacts/* \
             --draft \
             --repo ${{ github.repository }} \
-            --generate-notes \
-            --title "$TAG"
-          
-          # 获取 GitHub 自动生成的 body
-          gh release view "$TAG" --repo ${{ github.repository }} --json body -q .body > auto_notes.md
-
-      # 3. 合并：自动变更日志 + SHA512 表格，更新 Release
-      - name: Merge & Update Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cat auto_notes.md > final_notes.md
-          echo "" >> final_notes.md
-          cat checksums_table.md >> final_notes.md
-          
-          gh release edit "$TAG" --repo ${{ github.repository }} --notes-file final_notes.md
-
-      # 4. 上传产物
-      - name: Upload Assets
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          for f in ./artifacts/*; do
-            [ -f "$f" ] || continue
-            gh release upload "$TAG" "$f" --repo ${{ github.repository }}
-          done
+            --title "$TAG" \
+            --notes-file notes.md \
+            $PRE_ARGS
