@@ -1,9 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Xml.Serialization;
+using Zinc.Models;
+using Zinc.Views;
 
 namespace Zinc.ViewModels;
 public partial class MainViewModel : ObservableObject
 {
+    [ObservableProperty]
+    private ObservableCollection<TabItemModel> _tabs = new ObservableCollection<TabItemModel>()
+    {
+        new TabItemModel(){ Header = "New Document 0", Content = new EditorView(){ } }
+    };
+
 }

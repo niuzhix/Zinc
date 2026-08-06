@@ -5,6 +5,8 @@
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              xmlns:vm="using:Zinc.ViewModels"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="using:Zinc.Models"
+             xmlns:system="using:System"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Zinc.Views.MainView"
              x:DataType="vm:MainViewModel">
@@ -34,12 +36,20 @@
         <ui:FATabView Name="TabView"
                       Grid.Row="1"
                       Grid.ColumnSpan="2"
+                      TabItemsSource="{Binding Tabs}"
                       AddTabButtonClick="TabView_AddTabButtonClick"
                       TabCloseRequested="TabView_TabCloseRequested"
                       TabWidthMode="Equal"
                       CloseButtonOverlayMode="OnPointerOver"
                       TabStripLocation="Top"
                       CanReorderTabs="True"
-                      CanDragTabs="True"/>
+                      CanDragTabs="True">
+            <ui:FATabView.TabItemTemplate>
+                <DataTemplate DataType="models:TabItemModel">
+                    <ui:FATabViewItem Header="{Binding Header}"
+                                      Content="{Binding Content}"/>
+                </DataTemplate>
+            </ui:FATabView.TabItemTemplate>
+        </ui:FATabView>
     </Grid>
 </UserControl>

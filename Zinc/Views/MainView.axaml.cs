@@ -4,34 +4,37 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.MarkupExtensions;
 using FluentAvalonia.UI.Controls;
+using System;
+using Zinc.Models;
 using Zinc.ViewModels;
 
 namespace Zinc.Views;
 
 public partial class MainView : UserControl
 {
+    int Count = 0;
+
     public MainView()
     {
         InitializeComponent();
-
-        var newTab = new FATabViewItem();
-        newTab.Header = $"New Document {TabView.TabItems.Count}";
-        newTab.Content = new EditorView();
-        TabView.TabItems.Add(newTab);
-        TabView.SelectedItem = newTab;
+        DataContext = new MainViewModel();
     }
 
     private void TabView_AddTabButtonClick(FATabView sender, System.EventArgs args)
     {
-        var newTab = new FATabViewItem();
-        newTab.Header = $"New Document {sender.TabItems.Count}";
-        newTab.Content = new EditorView();
-        sender.TabItems.Add(newTab);
-        sender.SelectedItem = newTab;
+        if(DataContext is MainViewModel vm)
+        {
+            vm.Tabs.Add(
+                new TabItemModel() { Header = $"New Document {++Count}", Content = new EditorView() { } }
+            );
+        }
     }
 
     private void TabView_TabCloseRequested(FATabView sender, FATabViewTabCloseRequestedEventArgs args)
     {
-        sender.TabItems.Remove(args.Tab);
+        if(DataContext is MainViewModel vm)
+        {
+            vm.Tabs.Remove(args.Item as TabItemModel);
+        }
     }
 }
