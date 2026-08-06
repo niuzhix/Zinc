@@ -1,4 +1,5 @@
-﻿using AvaloniaEdit.TextMate;
+﻿using AvaloniaEdit.Document;
+using AvaloniaEdit.TextMate;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using Zinc.Core.Abstractions;
@@ -11,12 +12,17 @@ namespace Zinc.ViewModels
     {
         private readonly ISettingsService _settings;
         [ObservableProperty]
-        private string content = string.Empty;
+        private TextDocument content;
 
-        public EditorViewModel()
+        public EditorViewModel(string? _content = null)
         {
             _settings = new SettingsService();
             _settings.Preload();
+            Content = new TextDocument();
+            if(_content != null)
+            {
+                Content.Insert(0, _content);
+            }
         }
 
         public AppSettings Settings => _settings.appSettings;

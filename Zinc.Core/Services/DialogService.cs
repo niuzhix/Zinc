@@ -33,7 +33,7 @@ public class DialogService : IDialogService
         }
         else
         {
-            return string.Empty;
+            return null;
         }
     }
 

@@ -31,6 +31,7 @@
               Grid.Column="0"
               WindowDecorationProperties.ElementRole="User">
             <MenuItem Header="文件(_F)">
+                <MenuItem Header="打开...(_O)" Command="{Binding OpenCommand}"/>
             </MenuItem>
         </Menu> 
         <ui:FATabView Name="TabView"
