@@ -52,7 +52,6 @@ namespace Zinc.ViewModels;
 	[RelayCommand]
 	public async Task SaveAsync()
 	{
-		Console.WriteLine(filepath);
 		if (string.IsNullOrEmpty(filepath))
 		{
 			var selectedpath = await _dialogService.SaveFilePathAsync("选择保存文件位置", "未标题", ".cpp", _filters);
@@ -64,9 +63,23 @@ namespace Zinc.ViewModels;
 		}
 
 		_fileService.SaveFile(filepath, Content.Text);
-        Filename = filepath?.Split("\\").Last();
+		Filename = filepath?.Split("\\").Last();
 
-    }
+	}
+
+	[RelayCommand]
+	public async Task SaveAsAsync()
+	{
+		var selectedpath = await _dialogService.SaveFilePathAsync("选择保存文件位置", "未标题", ".cpp", _filters);
+		if (string.IsNullOrEmpty(selectedpath))
+		{
+			return;
+		}
+
+		_fileService.SaveFile(selectedpath, Content.Text);
+
+	}
+
 	public AppSettings Settings => _settings.appSettings;
 	public void SaveSettings() => _settings.Save();
 }

@@ -33,6 +33,7 @@
 			<MenuItem Header="文件(_F)">
 				<MenuItem Header="打开...(_O)" Command="{Binding OpenCommand}"/>
 				<MenuItem Header="保存...(_S)" Command="{Binding SaveCurrentTabCommand}"/>
+				<MenuItem Header="另存为...(_S)" Command="{Binding SaveAsCurrentTabCommand}"/>
 			</MenuItem>
 		</Menu> 
 		<ui:FATabView Name="TabView"

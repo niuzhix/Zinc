@@ -58,4 +58,13 @@ public partial class MainViewModel : ObservableObject
 		}
 	}
 
+    [RelayCommand]
+    private async Task SaveAsCurrentTabAsync()
+    {
+        if (SelectedItem?.Content?.DataContext is EditorViewModel ev)
+        {
+            await ev.SaveAsAsync();
+        }
+    }
+
 }
