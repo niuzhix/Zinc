@@ -44,8 +44,7 @@ public partial class MainViewModel : ObservableObject
 		if(!string.IsNullOrEmpty(filepath))
 		{
 			var file = _fileService.LoadFile(filepath);
-			Console.WriteLine($"{filepath}", file);
-			Tabs.Add(new TabItemModel() { Header = filepath.Split("\\").Last(), Content = new EditorView(file) });
+			Tabs.Add(new TabItemModel() { Header = filepath.Split("\\").Last(), Content = new EditorView(file, filepath) });
 		}
 	}
 
@@ -55,6 +54,7 @@ public partial class MainViewModel : ObservableObject
 		if (SelectedItem?.Content?.DataContext is EditorViewModel ev)
 		{
 			await ev.SaveAsync();
+			SelectedItem.Header = ev.Filename;
 		}
 	}
 

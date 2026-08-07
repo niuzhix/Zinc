@@ -1,10 +1,12 @@
-﻿using AvaloniaEdit.Document;
+﻿using Avalonia.Controls.Shapes;
+using AvaloniaEdit.Document;
 using AvaloniaEdit.TextMate;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
@@ -21,9 +23,12 @@ namespace Zinc.ViewModels;
 
 	[ObservableProperty]
 	private TextDocument content;
+
+	[ObservableProperty]
+	private string? filename = string.Empty;
 	
 	private string? filepath = string.Empty;
-	private IReadOnlyList<FileFilter> _filters = new List<FileFilter>()
+	private readonly IReadOnlyList<FileFilter> _filters = new List<FileFilter>()
 	{
 		new FileFilter(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
 	};
@@ -41,14 +46,16 @@ namespace Zinc.ViewModels;
 			Content.Insert(0, _content);
 		}
 		filepath = _path;
+		Filename = _path?.Split("\\").Last();
 	}
 
 	[RelayCommand]
 	public async Task SaveAsync()
 	{
+		Console.WriteLine(filepath);
 		if (string.IsNullOrEmpty(filepath))
 		{
-			var selectedpath = await _dialogService.SaveFilePathAsync("选择保存文件位置");
+			var selectedpath = await _dialogService.SaveFilePathAsync("选择保存文件位置", "未标题", ".cpp", _filters);
 			if (string.IsNullOrEmpty(selectedpath))
 			{
 				return;
@@ -57,8 +64,9 @@ namespace Zinc.ViewModels;
 		}
 
 		_fileService.SaveFile(filepath, Content.Text);
-		
-	}
+        Filename = filepath?.Split("\\").Last();
+
+    }
 	public AppSettings Settings => _settings.appSettings;
 	public void SaveSettings() => _settings.Save();
 }

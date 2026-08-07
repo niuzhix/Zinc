@@ -10,10 +10,10 @@ namespace Zinc.Views;
 
 public partial class EditorView : UserControl
 {
-	public EditorView(string? content = null)
+	public EditorView(string? content = null, string? path = null)
 	{
 		InitializeComponent();
-		DataContext = new EditorViewModel(content);
+		DataContext = new EditorViewModel(content, path);
 
 		var  _registryOptions = new RegistryOptions(ThemeName.DarkPlus);
 		var _textMateInstallation = CodeEditor.InstallTextMate(_registryOptions);
