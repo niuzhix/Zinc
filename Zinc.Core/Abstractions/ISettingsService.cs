@@ -3,7 +3,7 @@
 namespace Zinc.Core.Abstractions;
 public interface ISettingsService
 {
-    AppSettings appSettings { get; }
-    void Preload();
-    void Save();
+	AppSettings appSettings { get; }
+	void Preload();
+	void Save();
 }

@@ -1,58 +1,58 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:views="using:Zinc.Views"
-             xmlns:ui="using:FluentAvalonia.UI.Controls"
-             xmlns:vm="using:Zinc.ViewModels"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:models="using:Zinc.Models"
-             xmlns:system="using:System"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Zinc.Views.MainView"
-             x:DataType="vm:MainViewModel">
-    
-    <Grid Name="TitleBarHost"
-          Background="Transparent">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="48"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:views="using:Zinc.Views"
+			 xmlns:ui="using:FluentAvalonia.UI.Controls"
+			 xmlns:vm="using:Zinc.ViewModels"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:models="using:Zinc.Models"
+			 xmlns:system="using:System"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Class="Zinc.Views.MainView"
+			 x:DataType="vm:MainViewModel">
+	
+	<Grid Name="TitleBarHost"
+		  Background="Transparent">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="48"/>
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
 
-        <Rectangle Grid.Row="0"
-                   Grid.Column="1"
-                   Fill="Transparent"
-                   WindowDecorationProperties.ElementRole="TitleBar"/>
+		<Rectangle Grid.Row="0"
+				   Grid.Column="1"
+				   Fill="Transparent"
+				   WindowDecorationProperties.ElementRole="TitleBar"/>
 
-        <Menu Grid.Row="0"
-              Grid.Column="0"
-              WindowDecorationProperties.ElementRole="User">
-            <MenuItem Header="文件(_F)">
-                <MenuItem Header="打开...(_O)" Command="{Binding OpenCommand}"/>
-                <MenuItem Header="保存...(_S)" Command="{Binding SaveCurrentTabCommand}"/>
-            </MenuItem>
-        </Menu> 
-        <ui:FATabView Name="TabView"
-                      Grid.Row="1"
-                      Grid.ColumnSpan="2"
-                      TabItemsSource="{Binding Tabs}"
-                      SelectedItem="{Binding SelectedItem}"
-                      AddTabButtonClick="TabView_AddTabButtonClick"
-                      TabCloseRequested="TabView_TabCloseRequested"
-                      TabWidthMode="Equal"
-                      CloseButtonOverlayMode="OnPointerOver"
-                      TabStripLocation="Top"
-                      CanReorderTabs="True"
-                      CanDragTabs="True">
-            <ui:FATabView.TabItemTemplate>
-                <DataTemplate DataType="models:TabItemModel">
-                    <ui:FATabViewItem Header="{Binding Header}"
-                                      Content="{Binding Content}"/>
-                </DataTemplate>
-            </ui:FATabView.TabItemTemplate>
-        </ui:FATabView>
-    </Grid>
+		<Menu Grid.Row="0"
+			  Grid.Column="0"
+			  WindowDecorationProperties.ElementRole="User">
+			<MenuItem Header="文件(_F)">
+				<MenuItem Header="打开...(_O)" Command="{Binding OpenCommand}"/>
+				<MenuItem Header="保存...(_S)" Command="{Binding SaveCurrentTabCommand}"/>
+			</MenuItem>
+		</Menu> 
+		<ui:FATabView Name="TabView"
+					  Grid.Row="1"
+					  Grid.ColumnSpan="2"
+					  TabItemsSource="{Binding Tabs}"
+					  SelectedItem="{Binding SelectedItem}"
+					  AddTabButtonClick="TabView_AddTabButtonClick"
+					  TabCloseRequested="TabView_TabCloseRequested"
+					  TabWidthMode="Equal"
+					  CloseButtonOverlayMode="OnPointerOver"
+					  TabStripLocation="Top"
+					  CanReorderTabs="True"
+					  CanDragTabs="True">
+			<ui:FATabView.TabItemTemplate>
+				<DataTemplate DataType="models:TabItemModel">
+					<ui:FATabViewItem Header="{Binding Header}"
+									  Content="{Binding Content}"/>
+				</DataTemplate>
+			</ui:FATabView.TabItemTemplate>
+		</ui:FATabView>
+	</Grid>
 </UserControl>

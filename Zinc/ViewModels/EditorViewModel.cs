@@ -13,52 +13,52 @@ using Zinc.Models;
 using Zinc.Views;
 
 namespace Zinc.ViewModels;
-    public partial class EditorViewModel : ObservableObject
+	public partial class EditorViewModel : ObservableObject
 {
-    private readonly ISettingsService _settings;
-    private readonly IDialogService _dialogService;
-    private readonly IFileService _fileService;
+	private readonly ISettingsService _settings;
+	private readonly IDialogService _dialogService;
+	private readonly IFileService _fileService;
 
-    [ObservableProperty]
-    private TextDocument content;
-    
-    private string? filepath = string.Empty;
-    private IReadOnlyList<FileFilter> _filters = new List<FileFilter>()
-    {
-        new FileFilter(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
-    };
+	[ObservableProperty]
+	private TextDocument content;
+	
+	private string? filepath = string.Empty;
+	private IReadOnlyList<FileFilter> _filters = new List<FileFilter>()
+	{
+		new FileFilter(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
+	};
 
-    public EditorViewModel(string? _content = null, string? _path = null)
-    {
-        _settings = new SettingsService();
-        _settings.Preload();
-        _dialogService = new DialogService();
-        _fileService = new FileService();
+	public EditorViewModel(string? _content = null, string? _path = null)
+	{
+		_settings = new SettingsService();
+		_settings.Preload();
+		_dialogService = new DialogService();
+		_fileService = new FileService();
 
-        Content = new TextDocument();
-        if (!string.IsNullOrEmpty(_content))
-        {
-            Content.Insert(0, _content);
-        }
-        filepath = _path;
-    }
+		Content = new TextDocument();
+		if (!string.IsNullOrEmpty(_content))
+		{
+			Content.Insert(0, _content);
+		}
+		filepath = _path;
+	}
 
-    [RelayCommand]
-    public async Task SaveAsync()
-    {
-        if (string.IsNullOrEmpty(filepath))
-        {
-            var selectedpath = await _dialogService.SaveFilePathAsync("选择保存文件位置");
-            if (string.IsNullOrEmpty(selectedpath))
-            {
-                return;
-            }
-            filepath = selectedpath;
-        }
+	[RelayCommand]
+	public async Task SaveAsync()
+	{
+		if (string.IsNullOrEmpty(filepath))
+		{
+			var selectedpath = await _dialogService.SaveFilePathAsync("选择保存文件位置");
+			if (string.IsNullOrEmpty(selectedpath))
+			{
+				return;
+			}
+			filepath = selectedpath;
+		}
 
-        _fileService.SaveFile(filepath, Content.Text);
-        
-    }
-    public AppSettings Settings => _settings.appSettings;
-    public void SaveSettings() => _settings.Save();
+		_fileService.SaveFile(filepath, Content.Text);
+		
+	}
+	public AppSettings Settings => _settings.appSettings;
+	public void SaveSettings() => _settings.Save();
 }

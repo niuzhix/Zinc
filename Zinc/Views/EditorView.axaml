@@ -1,27 +1,27 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="using:Zinc.ViewModels"
-             xmlns:edit="https://github.com/avaloniaui/avaloniaedit"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Zinc.Views.EditorView"
-             x:DataType="vm:EditorViewModel">
-    <DockPanel>
-        <Grid DockPanel.Dock="Top">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="0.7*"/>
-                <ColumnDefinition Width="0.3*"/>
-            </Grid.ColumnDefinitions>
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:Zinc.ViewModels"
+			 xmlns:edit="https://github.com/avaloniaui/avaloniaedit"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Class="Zinc.Views.EditorView"
+			 x:DataType="vm:EditorViewModel">
+	<DockPanel>
+		<Grid DockPanel.Dock="Top">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="0.7*"/>
+				<ColumnDefinition Width="0.3*"/>
+			</Grid.ColumnDefinitions>
 
-            <edit:TextEditor x:Name="CodeEditor"
-                             Grid.Column="0"
-                             Document="{Binding Content,Mode=TwoWay}"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Stretch"
-                             ShowLineNumbers="True"
-                             FontFamily="FiraCode,Cascadia Code,Consolas,Menlo,Monospace"
-                             SyntaxHighlighting="C++"/>
-        </Grid>
-    </DockPanel>
+			<edit:TextEditor x:Name="CodeEditor"
+							 Grid.Column="0"
+							 Document="{Binding Content,Mode=TwoWay}"
+							 HorizontalAlignment="Stretch"
+							 VerticalAlignment="Stretch"
+							 ShowLineNumbers="True"
+							 FontFamily="FiraCode,Cascadia Code,Consolas,Menlo,Monospace"
+							 SyntaxHighlighting="C++"/>
+		</Grid>
+	</DockPanel>
 </UserControl>
