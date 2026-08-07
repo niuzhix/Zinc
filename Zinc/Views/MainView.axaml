@@ -31,9 +31,10 @@
 			  Grid.Column="0"
 			  WindowDecorationProperties.ElementRole="User">
 			<MenuItem Header="文件(_F)">
-				<MenuItem Header="打开...(_O)" Command="{Binding OpenCommand}"/>
-				<MenuItem Header="保存...(_S)" Command="{Binding SaveCurrentTabCommand}"/>
-				<MenuItem Header="另存为...(_S)" Command="{Binding SaveAsCurrentTabCommand}"/>
+				<!--TOFIX:增加快捷键-->
+				<MenuItem Header="打开...(_O)" Command="{Binding OpenCommand}" InputGesture="Ctrl+O"/>
+				<MenuItem Header="保存...(_S)" Command="{Binding SaveCurrentTabCommand}" InputGesture="Ctrl+S"/>
+				<MenuItem Header="另存为...(_A)" Command="{Binding SaveAsCurrentTabCommand}" InputGesture="Ctrl+Shift+S"/>
 			</MenuItem>
 		</Menu> 
 		<ui:FATabView Name="TabView"
