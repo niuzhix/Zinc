@@ -22,6 +22,9 @@ public partial class MainViewModel : ObservableObject
         new TabItemModel(){ Header = "New Document 0", Content = new EditorView(){ } }
     };
 
+    [ObservableProperty]
+    private TabItemModel? _selectedItem;
+
     private IReadOnlyList<FileFilter> _filters = new List<FileFilter>()
     {
         new FileFilter(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
@@ -31,17 +34,27 @@ public partial class MainViewModel : ObservableObject
     {
         _dialogService = new DialogService();
         _fileService = new FileService();
+        _selectedItem = Tabs[0];
     }
 
     [RelayCommand]
     private async Task OpenAsync()
     {
         var filepath = await _dialogService.OpenFilePathAsync("选择要打开的文件", _filters);
-        if(filepath != null)
+        if(!string.IsNullOrEmpty(filepath))
         {
             var file = _fileService.LoadFile(filepath);
             Console.WriteLine($"{filepath}", file);
             Tabs.Add(new TabItemModel() { Header = filepath.Split("\\").Last(), Content = new EditorView(file) });
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveCurrentTabAsync()
+    {
+        if (SelectedItem?.Content?.DataContext is EditorViewModel ev)
+        {
+            await ev.SaveAsync();
         }
     }
 

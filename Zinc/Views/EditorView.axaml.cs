@@ -19,4 +19,8 @@ public partial class EditorView : UserControl
         var _textMateInstallation = CodeEditor.InstallTextMate(_registryOptions);
         _textMateInstallation.SetGrammar(_registryOptions.GetScopeByLanguageId(_registryOptions.GetLanguageByExtension(".cpp").Id));
     }
+    public void a()
+    {
+
+    }
 }

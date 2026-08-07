@@ -32,12 +32,14 @@
               WindowDecorationProperties.ElementRole="User">
             <MenuItem Header="文件(_F)">
                 <MenuItem Header="打开...(_O)" Command="{Binding OpenCommand}"/>
+                <MenuItem Header="保存...(_S)" Command="{Binding SaveCurrentTabCommand}"/>
             </MenuItem>
         </Menu> 
         <ui:FATabView Name="TabView"
                       Grid.Row="1"
                       Grid.ColumnSpan="2"
                       TabItemsSource="{Binding Tabs}"
+                      SelectedItem="{Binding SelectedItem}"
                       AddTabButtonClick="TabView_AddTabButtonClick"
                       TabCloseRequested="TabView_TabCloseRequested"
                       TabWidthMode="Equal"

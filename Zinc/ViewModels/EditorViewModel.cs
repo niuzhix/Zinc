@@ -1,31 +1,64 @@
 ﻿using AvaloniaEdit.Document;
 using AvaloniaEdit.TextMate;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
 using Zinc.Core.Services;
+using Zinc.Models;
+using Zinc.Views;
 
-namespace Zinc.ViewModels
-{
+namespace Zinc.ViewModels;
     public partial class EditorViewModel : ObservableObject
-    {
-        private readonly ISettingsService _settings;
-        [ObservableProperty]
-        private TextDocument content;
+{
+    private readonly ISettingsService _settings;
+    private readonly IDialogService _dialogService;
+    private readonly IFileService _fileService;
 
-        public EditorViewModel(string? _content = null)
+    [ObservableProperty]
+    private TextDocument content;
+    
+    private string? filepath = string.Empty;
+    private IReadOnlyList<FileFilter> _filters = new List<FileFilter>()
+    {
+        new FileFilter(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
+    };
+
+    public EditorViewModel(string? _content = null, string? _path = null)
+    {
+        _settings = new SettingsService();
+        _settings.Preload();
+        _dialogService = new DialogService();
+        _fileService = new FileService();
+
+        Content = new TextDocument();
+        if (!string.IsNullOrEmpty(_content))
         {
-            _settings = new SettingsService();
-            _settings.Preload();
-            Content = new TextDocument();
-            if(_content != null)
+            Content.Insert(0, _content);
+        }
+        filepath = _path;
+    }
+
+    [RelayCommand]
+    public async Task SaveAsync()
+    {
+        if (string.IsNullOrEmpty(filepath))
+        {
+            var selectedpath = await _dialogService.SaveFilePathAsync("选择保存文件位置");
+            if (string.IsNullOrEmpty(selectedpath))
             {
-                Content.Insert(0, _content);
+                return;
             }
+            filepath = selectedpath;
         }
 
-        public AppSettings Settings => _settings.appSettings;
-        public void SaveSettings() => _settings.Save();
+        _fileService.SaveFile(filepath, Content.Text);
+        
     }
+    public AppSettings Settings => _settings.appSettings;
+    public void SaveSettings() => _settings.Save();
 }
