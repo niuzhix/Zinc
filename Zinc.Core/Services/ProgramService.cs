@@ -261,7 +261,7 @@ public class ProgramService : IProgramService
             _ => "c++17"
         };
     }
-    private void LogCompileResult(CompileResult result)
+    public string LogCompileResult(CompileResult result)
     {
         var log = new StringBuilder();
         log.AppendLine("========== 编译日志 ==========");
@@ -292,6 +292,6 @@ public class ProgramService : IProgramService
 
         log.AppendLine("==============================");
 
-        Console.WriteLine(log.ToString());
+        return log.ToString();
     }
 }

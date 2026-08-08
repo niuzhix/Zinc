@@ -27,6 +27,9 @@ namespace Zinc.ViewModels;
 
 	[ObservableProperty]
 	private string? filename = string.Empty;
+
+	[ObservableProperty]
+	private string? compileLog = string.Empty;
 	
 	private string? filepath = string.Empty;
 	private readonly IReadOnlyList<FileFilter> _filters = new List<FileFilter>()
@@ -85,8 +88,10 @@ namespace Zinc.ViewModels;
 	[RelayCommand]
 	private async Task CompileAsync()
 	{
-
-		// 获取编译器列表
+		if (string.IsNullOrEmpty(filepath))
+		{
+			return ;
+		}
 		var compilers = _programService.FindAllCompilers();
         foreach (var compiler in compilers)
         {
@@ -94,7 +99,6 @@ namespace Zinc.ViewModels;
             Console.WriteLine($"    版本: {compiler.Version}");
         }
 
-        // 编译代码
         var options = new CompileOptions
         {
             CodePath = filepath,
@@ -107,15 +111,7 @@ namespace Zinc.ViewModels;
 
         CompileResult result = await _programService.CompileAsync(options);
 
-        if (result.IsSuccess)
-        {
-            Console.WriteLine("✅ 编译成功!");
-        }
-        else
-        {
-            Console.WriteLine($"❌ 编译失败: {result.ErrorMessage}");
-            Console.WriteLine($"错误详情: {result.Error}");
-        }
+		CompileLog += _programService.LogCompileResult(result);
     }
 	public AppSettings Settings => _settingsService.appSettings;
 	public void SaveSettings() => _settingsService.Save();

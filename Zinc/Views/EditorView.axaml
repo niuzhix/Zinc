@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:controls="using:FluentAvalonia.UI.Controls"
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -10,8 +11,8 @@
 	<DockPanel>
 		<Grid DockPanel.Dock="Top">
 			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="0.7*"/>
-				<ColumnDefinition Width="0.3*"/>
+				<ColumnDefinition Width="0.6*"/>
+				<ColumnDefinition Width="0.4*"/>
 			</Grid.ColumnDefinitions>
 
 			<edit:TextEditor x:Name="CodeEditor"
@@ -22,10 +23,19 @@
 							 ShowLineNumbers="True"
 							 FontFamily="FiraCode,Cascadia Code,Consolas,Menlo,Monospace"
 							 SyntaxHighlighting="C++"/>
-			<StackPanel Grid.Column="1">
+			<StackPanel Grid.Column="1"
+						Orientation="Vertical"
+						Spacing="8"
+						Margin="5">
 				<Button Command="{Binding CompileCommand}">
-					编译
+					<StackPanel Orientation="Horizontal"
+								Spacing="8"
+								VerticalAlignment="Stretch">
+						<controls:FASymbolIcon Symbol="Play" VerticalAlignment="Stretch"/>
+						<TextBlock Text="编译" />
+					</StackPanel>
 				</Button>
+				<TextBox Height="200" AcceptsReturn="True" TextWrapping="Wrap" Text="{Binding CompileLog}" IsReadOnly="True"/>
 			</StackPanel>
 		</Grid>
 	</DockPanel>

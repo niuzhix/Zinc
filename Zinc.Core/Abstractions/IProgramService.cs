@@ -7,4 +7,6 @@ public interface IProgramService
     Task<CompileResult> CompileAsync(CompileOptions options);
 
     List<CompilerInfo> FindAllCompilers();
+
+    string LogCompileResult(CompileResult result);
 }
