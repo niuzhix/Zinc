@@ -95,7 +95,7 @@ public class ProgramService : IProgramService
         }
     }
 
-    private List<CompilerInfo> FindAllCompilers()
+    public List<CompilerInfo> FindAllCompilers()
     {
         var compilers = new List<CompilerInfo>();
         var foundPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

@@ -22,6 +22,11 @@
 							 ShowLineNumbers="True"
 							 FontFamily="FiraCode,Cascadia Code,Consolas,Menlo,Monospace"
 							 SyntaxHighlighting="C++"/>
+			<StackPanel Grid.Column="1">
+				<Button Command="{Binding CompileCommand}">
+					编译
+				</Button>
+			</StackPanel>
 		</Grid>
 	</DockPanel>
 </UserControl>

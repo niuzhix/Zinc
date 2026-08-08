@@ -4,5 +4,7 @@ namespace Zinc.Core.Abstractions;
 
 public interface IProgramService
 {
-    Task<int> CompileAsync(CompileOptions options);
+    Task<CompileResult> CompileAsync(CompileOptions options);
+
+    List<CompilerInfo> FindAllCompilers();
 }

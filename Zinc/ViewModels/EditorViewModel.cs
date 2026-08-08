@@ -17,11 +17,12 @@ using Zinc.Views;
 namespace Zinc.ViewModels;
 	public partial class EditorViewModel : ObservableObject
 {
-	private readonly ISettingsService _settings;
+	private readonly ISettingsService _settingsService;
 	private readonly IDialogService _dialogService;
 	private readonly IFileService _fileService;
+	private readonly IProgramService _programService;
 
-	[ObservableProperty]
+    [ObservableProperty]
 	private TextDocument content;
 
 	[ObservableProperty]
@@ -35,10 +36,11 @@ namespace Zinc.ViewModels;
 
 	public EditorViewModel(string? _content = null, string? _path = null)
 	{
-		_settings = new SettingsService();
-		_settings.Preload();
+		_settingsService = new SettingsService();
+		_settingsService.Preload();
 		_dialogService = new DialogService();
 		_fileService = new FileService();
+		_programService = new ProgramService();
 
 		Content = new TextDocument();
 		if (!string.IsNullOrEmpty(_content))
@@ -80,6 +82,41 @@ namespace Zinc.ViewModels;
 
 	}
 
-	public AppSettings Settings => _settings.appSettings;
-	public void SaveSettings() => _settings.Save();
+	[RelayCommand]
+	private async Task CompileAsync()
+	{
+
+		// 获取编译器列表
+		var compilers = _programService.FindAllCompilers();
+        foreach (var compiler in compilers)
+        {
+            Console.WriteLine($"[{(compiler.IsDefault ? "默认" : "    ")}] {compiler.Path}");
+            Console.WriteLine($"    版本: {compiler.Version}");
+        }
+
+        // 编译代码
+        var options = new CompileOptions
+        {
+            CodePath = filepath,
+            enableO2 = true,
+            enableGDB = true,
+            StandardVersion = CppStandard.Cpp17,
+            warningCheck = true,
+            overAddressCheck = false
+        };
+
+        CompileResult result = await _programService.CompileAsync(options);
+
+        if (result.IsSuccess)
+        {
+            Console.WriteLine("✅ 编译成功!");
+        }
+        else
+        {
+            Console.WriteLine($"❌ 编译失败: {result.ErrorMessage}");
+            Console.WriteLine($"错误详情: {result.Error}");
+        }
+    }
+	public AppSettings Settings => _settingsService.appSettings;
+	public void SaveSettings() => _settingsService.Save();
 }
