@@ -5,12 +5,12 @@
 			 xmlns:sty="using:FluentAvalonia.Styling"
 			 xmlns:windowing="using:FluentAvalonia.UI.Windowing"
 			 RequestedThemeVariant="Default">
-			 <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+	<!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
 	<Application.DataTemplates>
 		<local:ViewLocator/>
 	</Application.DataTemplates>
-  
+
 	<Application.Styles>
 		<sty:FluentAvaloniaTheme/>
 		<StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />

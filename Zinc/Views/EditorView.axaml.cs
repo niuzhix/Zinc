@@ -10,13 +10,13 @@ namespace Zinc.Views;
 
 public partial class EditorView : UserControl
 {
-	public EditorView(string? content = null, string? path = null)
-	{
-		InitializeComponent();
-		DataContext = new EditorViewModel(content, path);
+    public EditorView(string? content = null, string? path = null)
+    {
+        InitializeComponent();
+        DataContext = new EditorViewModel(content, path);
 
-		var  _registryOptions = new RegistryOptions(ThemeName.DarkPlus);
-		var _textMateInstallation = CodeEditor.InstallTextMate(_registryOptions);
-		_textMateInstallation.SetGrammar(_registryOptions.GetScopeByLanguageId(_registryOptions.GetLanguageByExtension(".cpp").Id));
-	}
+        var _registryOptions = new RegistryOptions(ThemeName.DarkPlus);
+        var _textMateInstallation = CodeEditor.InstallTextMate(_registryOptions);
+        _textMateInstallation.SetGrammar(_registryOptions.GetScopeByLanguageId(_registryOptions.GetLanguageByExtension(".cpp").Id));
+    }
 }

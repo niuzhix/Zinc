@@ -206,7 +206,7 @@ public class ProgramService : IProgramService
                 }
             }
         }
-        catch {  }
+        catch { }
         return "Unknown Version";
     }
 
