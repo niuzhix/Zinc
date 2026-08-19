@@ -19,7 +19,7 @@ public class ProgramService : IProgramService
             {
                 result.IsSuccess = false;
                 result.ErrorType = CompileErrorType.CompilerNotFound;
-                result.ErrorMessage = "未找到任何 C++ 编译器 (g++)，请安装 MinGW-w64 或 GCC。";
+                result.ErrorMessage = "未找到 C++ 编译器";
                 result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
                 return result;
             }
@@ -31,7 +31,7 @@ public class ProgramService : IProgramService
             {
                 result.IsSuccess = false;
                 result.ErrorType = CompileErrorType.SourceFileNotFound;
-                result.ErrorMessage = $"源文件不存在: {options.CodePath}";
+                result.ErrorMessage = $"源文件不存在";
                 result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
                 return result;
             }
@@ -75,7 +75,7 @@ public class ProgramService : IProgramService
             if (!result.IsSuccess)
             {
                 result.ErrorType = CompileErrorType.CompilationFailed;
-                result.ErrorMessage = "编译失败，请检查代码错误。";
+                result.ErrorMessage = "编译失败";
             }
 
             result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
@@ -88,7 +88,7 @@ public class ProgramService : IProgramService
         {
             result.IsSuccess = false;
             result.ErrorType = CompileErrorType.InternalError;
-            result.ErrorMessage = $"编译内部错误: {ex.Message}";
+            result.ErrorMessage = $"内部错误";
             result.Output = ex.StackTrace ?? string.Empty;
             result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
             return result;
@@ -146,7 +146,7 @@ public class ProgramService : IProgramService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"查找编译器失败: {ex.Message}");
+            Console.WriteLine($"Fail to find Compiler: {ex.Message}");
         }
 
         if (compilers.Count == 0)
@@ -264,33 +264,20 @@ public class ProgramService : IProgramService
     public string LogCompileResult(CompileResult result)
     {
         var log = new StringBuilder();
-        log.AppendLine("========== 编译日志 ==========");
-        log.AppendLine($"时间: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        log.AppendLine($"编译器: {result.CompilerPath}");
-        log.AppendLine($"命令: {result.FullCommand}");
-        log.AppendLine($"退出码: {result.ExitCode}");
-        log.AppendLine($"耗时: {result.ElapsedMilliseconds}ms");
-        log.AppendLine($"状态: {(result.IsSuccess ? "✅ 成功" : "❌ 失败")}");
 
-        if (!string.IsNullOrWhiteSpace(result.Output))
-        {
-            log.AppendLine("--- 标准输出 ---");
-            log.AppendLine(result.Output);
-        }
+        log.Append($"[{DateTime.Now.ToLongTimeString()}] ");
 
         if (!string.IsNullOrWhiteSpace(result.Error))
         {
-            log.AppendLine("--- 错误输出 ---");
-            log.AppendLine(result.Error);
+            log.Append($"[{result.ErrorMessage}] ");
+            log.Append(result.Error);
         }
-
-        if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
+        else
         {
-            log.AppendLine($"--- 错误信息 ---");
-            log.AppendLine(result.ErrorMessage);
+            log.Append("[编译成功] ");
         }
 
-        log.AppendLine("==============================");
+        log.Append($"耗时: {result.ElapsedMilliseconds}ms\n");
 
         return log.ToString();
     }

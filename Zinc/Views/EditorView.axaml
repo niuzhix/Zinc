@@ -27,14 +27,34 @@
 						Orientation="Vertical"
 						Spacing="8"
 						Margin="5">
-				<Button Command="{Binding CompileCommand}">
-					<StackPanel Orientation="Horizontal"
-								Spacing="8"
-								VerticalAlignment="Stretch">
-						<controls:FASymbolIcon Symbol="Play" VerticalAlignment="Stretch"/>
-						<TextBlock Text="编译" />
-					</StackPanel>
-				</Button>
+				<StackPanel Orientation="Horizontal"
+							Spacing="8"
+							Margin="5">
+					<Button Command="{Binding CompileCommand}">
+						<StackPanel Orientation="Horizontal"
+									Spacing="8"
+									VerticalAlignment="Stretch">
+							<controls:FASymbolIcon Symbol="Accept" VerticalAlignment="Stretch"/>
+							<TextBlock Text="编译" />
+						</StackPanel>
+					</Button>
+					<Button Command="{Binding CompileCommand}">
+						<StackPanel Orientation="Horizontal"
+									Spacing="8"
+									VerticalAlignment="Stretch">
+							<controls:FASymbolIcon Symbol="Forward" VerticalAlignment="Stretch"/>
+							<TextBlock Text="运行样例" />
+						</StackPanel>
+					</Button>
+					<Button Command="{Binding CompileCommand}">
+						<StackPanel Orientation="Horizontal"
+									Spacing="8"
+									VerticalAlignment="Stretch">
+							<controls:FASymbolIcon Symbol="Play" VerticalAlignment="Stretch"/>
+							<TextBlock Text="编译并运行样例" />
+						</StackPanel>
+					</Button>
+				</StackPanel>
 				<TextBox Height="200" AcceptsReturn="True" TextWrapping="Wrap" Text="{Binding CompileLog}" IsReadOnly="True"/>
 			</StackPanel>
 		</Grid>

@@ -110,6 +110,8 @@ public partial class EditorViewModel : ObservableObject
             overAddressCheck = false
         };
 
+        CompileLog += $"[{DateTime.Now.ToLongTimeString()}] [开始编译] {Filename}\n";
+
         CompileResult result = await _programService.CompileAsync(options);
 
         CompileLog += _programService.LogCompileResult(result);
