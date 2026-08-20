@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Zinc.Core.Abstractions;
+﻿namespace Zinc.Core.Abstractions;
 
 public interface IDialogService
 {

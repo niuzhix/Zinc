@@ -116,6 +116,50 @@ public partial class EditorViewModel : ObservableObject
 
         CompileLog += _programService.LogCompileResult(result);
     }
+
+    [RelayCommand]
+    private async Task JudgeAsync()
+    {
+        if(string.IsNullOrEmpty(filepath))
+        {
+            return;
+        }
+        var executor = new JudgeService();
+        var options = new ExecutionOptions
+        {
+            ExecutablePath = $"{filepath.Split(".")[0]}.exe",
+            StandardInput = "5\n10\n",
+            ExpectedOutput = "15\n",
+            TimeLimitMs = 2000,
+            MemoryLimitMB = 256
+        };
+
+        var result = await executor.ExecuteAsync(options);
+
+        Console.WriteLine($"状态: {result.Result}");
+        Console.WriteLine($"执行时间: {result.ExecutionTime.TotalMilliseconds:F2}ms");
+        Console.WriteLine($"内存使用: {result.MemoryUsedBytes / 1024.0 / 1024.0:F2}MB");
+        Console.WriteLine($"退出码: {result.ExitCode}");
+
+        if (result.Result == JudgeResult.WA && result.Differences.Count > 0)
+        {
+            Console.WriteLine("\n=== 差异详情 ===");
+            foreach (var diff in result.Differences)
+            {
+                Console.WriteLine($"  {diff.Actual}");
+            }
+        }
+
+        if (!string.IsNullOrEmpty(result.ErrorOutput))
+        {
+            Console.WriteLine($"\n=== 错误输出 ===");
+            Console.WriteLine(result.ErrorOutput);
+        }
+
+        Console.WriteLine("\n按任意键退出...");
+        Console.ReadKey();
+    }
+
     public AppSettings Settings => _settingsService.appSettings;
     public void SaveSettings() => _settingsService.Save();
 }
