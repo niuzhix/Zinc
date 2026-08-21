@@ -11,6 +11,15 @@
 		<local:ViewLocator/>
 	</Application.DataTemplates>
 
+	<Application.Resources>
+		<SolidColorBrush x:Key="ACBrush" Color="#00CC00"/>
+		<SolidColorBrush x:Key="WABrush" Color="#FF0000"/>
+		<SolidColorBrush x:Key="TLEBrush" Color="#FFA500"/>
+		<SolidColorBrush x:Key="REBrush" Color="#FF00FF"/>
+		<SolidColorBrush x:Key="CEBrush" Color="#0000FF"/>
+		<SolidColorBrush x:Key="UKBrush" Color="#808080"/>
+	</Application.Resources>
+
 	<Application.Styles>
 		<sty:FluentAvaloniaTheme/>
 		<StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
