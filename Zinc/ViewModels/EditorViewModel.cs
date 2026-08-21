@@ -32,6 +32,18 @@ public partial class EditorViewModel : ObservableObject
     [ObservableProperty]
     private string? compileLog = string.Empty;
 
+    [ObservableProperty]
+    private string? input = string.Empty;
+
+    [ObservableProperty]
+    private string? answer = string.Empty;
+
+    [ObservableProperty]
+    private string? output = string.Empty;
+
+    [ObservableProperty]
+    private JudgeResult? resultCode;
+
     private string? filepath = string.Empty;
     private readonly IReadOnlyList<FileFilter> _filters = new List<FileFilter>()
     {
@@ -124,17 +136,24 @@ public partial class EditorViewModel : ObservableObject
         {
             return;
         }
+        if (string.IsNullOrEmpty(Input) || string.IsNullOrEmpty(Answer))
+        {
+            CompileLog += $"[{DateTime.Now.ToLongTimeString()}] [样例为空，无需运行] {Filename}\n";
+        }
         var executor = new JudgeService();
         var options = new ExecutionOptions
         {
             ExecutablePath = $"{filepath.Split(".")[0]}.exe",
-            StandardInput = "5\n10\n",
-            ExpectedOutput = "15\n",
+            StandardInput = Input,
+            ExpectedOutput = Answer,
             TimeLimitMs = 2000,
             MemoryLimitMB = 256
         };
 
         var result = await executor.ExecuteAsync(options);
+
+        ResultCode = result.Result;
+        Output = result.StandardOutput;
 
         Console.WriteLine($"状态: {result.Result}");
         Console.WriteLine($"执行时间: {result.ExecutionTime.TotalMilliseconds:F2}ms");
@@ -155,9 +174,6 @@ public partial class EditorViewModel : ObservableObject
             Console.WriteLine($"\n=== 错误输出 ===");
             Console.WriteLine(result.ErrorOutput);
         }
-
-        Console.WriteLine("\n按任意键退出...");
-        Console.ReadKey();
     }
 
     public AppSettings Settings => _settingsService.appSettings;

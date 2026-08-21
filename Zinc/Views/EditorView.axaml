@@ -23,13 +23,18 @@
 							 ShowLineNumbers="True"
 							 FontFamily="FiraCode,Cascadia Code,Consolas,Menlo,Monospace"
 							 SyntaxHighlighting="C++"/>
-			<StackPanel Grid.Column="1"
-						Orientation="Vertical"
-						Spacing="8"
-						Margin="5">
-				<StackPanel Orientation="Horizontal"
-							Spacing="8"
-							Margin="5">
+			<Grid Grid.Column="1"
+				  VerticalAlignment="Stretch"
+				  Margin="5"
+				  RowSpacing="8">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="0.35*"/>
+					<RowDefinition Height="0.65*"/>
+				</Grid.RowDefinitions>
+				<StackPanel Grid.Row="0"
+							Orientation="Horizontal"
+							Spacing="8">
 					<Button Command="{Binding CompileCommand}">
 						<StackPanel Orientation="Horizontal"
 									Spacing="8"
@@ -55,8 +60,56 @@
 						</StackPanel>
 					</Button>
 				</StackPanel>
-				<TextBox Height="200" AcceptsReturn="True" TextWrapping="Wrap" Text="{Binding CompileLog}" IsReadOnly="True"/>
-			</StackPanel>
+				<TextBox Grid.Row="1"  
+						 HorizontalAlignment="Stretch"
+						 AcceptsReturn="True" 
+						 TextWrapping="Wrap" 
+						 Text="{Binding CompileLog}" 
+						 IsReadOnly="True"/>
+				<Grid Grid.Row="2"
+					  HorizontalAlignment="Stretch"
+					  VerticalAlignment="Stretch"
+					  RowSpacing="8"
+					  ColumnSpacing="8">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="*"/>
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="*"/>
+						<ColumnDefinition Width="Auto"/>
+						<ColumnDefinition Width="*"/>
+					</Grid.ColumnDefinitions>
+					<TextBlock Grid.Column="0"
+							   Grid.Row="0"
+							   Text="输入"/>
+					<TextBox Grid.Column="0"
+							 Grid.Row="1"
+							 AcceptsReturn="True" 
+							 Text="{Binding Input}"/>
+					<TextBlock Grid.Column="1"
+							   Grid.Row="0"
+							   Text="实际输出"/>
+					<Button Grid.Column="2"
+							Grid.Row="0"
+							Background="LightGreen"
+							Content="{Binding ResultCode}"
+							Padding="18,0"/>
+					<TextBox Grid.Column="1"
+							 Grid.Row="1"
+							 Grid.ColumnSpan="2"
+							 AcceptsReturn="True" 
+							 Text="{Binding Output}"/>
+					<TextBlock Grid.Column="4"
+							   Grid.Row="0"
+							   Text="预期输出"/>
+					<TextBox Grid.Column="4"
+							 Grid.Row="1"
+							 AcceptsReturn="True" 
+							 Text="{Binding Answer}"/>
+				</Grid>
+			</Grid>
 		</Grid>
 	</DockPanel>
 </UserControl>
