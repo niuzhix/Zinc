@@ -3,16 +3,13 @@ using FluentAvalonia.Interop;
 using FluentAvalonia.UI.Windowing;
 using Zinc.ViewModels;
 
-namespace Zinc.Views
+namespace Zinc.Views;
+public partial class MainWindow : FAAppWindow
 {
-    public partial class MainWindow : FAAppWindow
+    public MainWindow()
     {
-        public MainWindow()
-        {
-            InitializeComponent();
-            DataContext = new MainWindowViewModel();
-            TitleBar.ExtendsContentIntoTitleBar = true;
-            TitleBar.Height = 48;
-        }
+        InitializeComponent();
+        TitleBar.ExtendsContentIntoTitleBar = true;
+        TitleBar.Height = 48;
     }
 }

@@ -5,6 +5,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.MarkupExtensions;
 using FluentAvalonia.UI.Controls;
 using System;
+using System.Threading.Tasks;
 using Zinc.Models;
 using Zinc.ViewModels;
 
@@ -43,5 +44,11 @@ public partial class MainView : UserControl
                 );
             }
         }
+    }
+
+    private void Settings_Click(object? sender, RoutedEventArgs e)
+    {
+        var settingsWindow = new SettingsWindow();
+        settingsWindow.Show(TopLevel.GetTopLevel(this) as Window);
     }
 }
