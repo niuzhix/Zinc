@@ -2,7 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="using:FluentAvalonia.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Zinc.Views.SettingsPages.SPBasicView">
-  Welcome to Avalonia!
+    <Grid Margin="64,64,64,0"
+          VerticalAlignment="Stretch"
+          HorizontalAlignment="Stretch">
+        <TextBlock Text="基本" Theme="{StaticResource TitleTextBlockStyle}"/>
+    </Grid>
 </UserControl>

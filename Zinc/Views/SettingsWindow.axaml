@@ -4,13 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="Zinc.Views.SettingsWindow"
-        Title="Zinc Settings">
+        MinWidth="560"
+        Title="应用设置" Height="550" Width="1240"
+        x:Class="Zinc.Views.SettingsWindow">
     <controls:FANavigationView HorizontalAlignment="Stretch"
                                VerticalAlignment="Stretch"
                                PaneDisplayMode="Auto"
-                               IsBackButtonVisible="True"
+                               IsBackButtonVisible="False"
                                IsSettingsVisible="False"
+                               OpenPaneLength="283"
                                SelectionChanged="FANavigationView_SelectionChanged">
         <controls:FANavigationView.MenuItems>
             <controls:FANavigationViewItem Content="A" Tag="Basic" IconSource="Play"/>
