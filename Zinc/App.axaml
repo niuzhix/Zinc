@@ -12,6 +12,9 @@
 	</Application.DataTemplates>
 
 	<Application.Resources>
+		<FontFamily x:Key="HarmonyOsSans">
+			avares://Zinc/Assets/Fonts/#HarmonyOS Sans SC
+		</FontFamily>
 		<SolidColorBrush x:Key="ACBrush" Color="#00CC00"/>
 		<SolidColorBrush x:Key="WABrush" Color="#FF0000"/>
 		<SolidColorBrush x:Key="TLEBrush" Color="#FFA500"/>
@@ -22,6 +25,7 @@
 
 	<Application.Styles>
 		<sty:FluentAvaloniaTheme/>
+		
 		<StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
 	</Application.Styles>
 </Application>

@@ -15,7 +15,7 @@
                                OpenPaneLength="283"
                                SelectionChanged="FANavigationView_SelectionChanged">
         <controls:FANavigationView.MenuItems>
-            <controls:FANavigationViewItem Content="A" Tag="Basic" IconSource="Play"/>
+            <controls:FANavigationViewItem Content="基本" Tag="Basic" IconSource="Settings"/>
         </controls:FANavigationView.MenuItems>
     </controls:FANavigationView>
 </Window>

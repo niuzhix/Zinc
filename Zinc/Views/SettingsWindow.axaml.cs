@@ -11,8 +11,7 @@ public partial class SettingsWindow : FAAppWindow
 {
     public SettingsWindow()
     {
-        InitializeComponent(); 
-        TitleBar.ExtendsContentIntoTitleBar = true;
+        InitializeComponent();
         TitleBar.Height = 48;
     }
 
