@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace Zinc.Views.SettingsPages;
 
-public partial class SPBasicView : UserControl
+public partial class SPUIView : UserControl
 {
-    public SPBasicView()
+    public SPUIView()
     {
         InitializeComponent();
     }

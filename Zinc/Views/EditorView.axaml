@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
 			 xmlns:controls="using:FluentAvalonia.UI.Controls"
+             xmlns:controls1="using:Zinc.Controls"
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -41,28 +42,13 @@
 							Orientation="Horizontal"
 							Spacing="8">
 					<Button Command="{Binding CompileCommand}">
-						<StackPanel Orientation="Horizontal"
-									Spacing="8"
-									VerticalAlignment="Stretch">
-							<controls:FASymbolIcon Symbol="Accept" VerticalAlignment="Stretch"/>
-							<TextBlock Text="编译" />
-						</StackPanel>
+						<controls1:IconText Symbol="Accept" Text="编译"/>
 					</Button>
 					<Button Command="{Binding JudgeCommand}">
-						<StackPanel Orientation="Horizontal"
-									Spacing="8"
-									VerticalAlignment="Stretch">
-							<controls:FASymbolIcon Symbol="Forward" VerticalAlignment="Stretch"/>
-							<TextBlock Text="运行样例" />
-						</StackPanel>
+						<controls1:IconText Symbol="Forward" Text="运行样例"/>
 					</Button>
 					<Button Command="{Binding CompileCommand}">
-						<StackPanel Orientation="Horizontal"
-									Spacing="8"
-									VerticalAlignment="Stretch">
-							<controls:FASymbolIcon Symbol="Play" VerticalAlignment="Stretch"/>
-							<TextBlock Text="编译并运行样例" />
-						</StackPanel>
+						<controls1:IconText Symbol="Play" Text="编译并运行"/>
 					</Button>
 				</StackPanel>
 				<TextBox Grid.Row="1"  

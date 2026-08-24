@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="using:FluentAvalonia.UI.Controls"
+             xmlns:local="using:Zinc.Controls"
+             mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="40"
+             x:Class="Zinc.Controls.IconText"
+             x:DataType="local:IconText">
+    <StackPanel Orientation="Horizontal" Spacing="{Binding Spacing, RelativeSource={RelativeSource AncestorType=local:IconText}}">
+        <controls:FASymbolIcon Symbol="{Binding Symbol, RelativeSource={RelativeSource AncestorType=local:IconText}}"
+                       VerticalAlignment="Center"
+                       FontSize="16">
+        </controls:FASymbolIcon>
+        <TextBlock Text="{Binding Text, RelativeSource={RelativeSource AncestorType=local:IconText}}"
+                   VerticalAlignment="Center"
+                   LineSpacing="0"
+                   Margin="0 0 0 -4"
+                   x:Name="TextElement"
+                   IsVisible="{Binding Symbol, RelativeSource={RelativeSource AncestorType=local:IconText}, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+    </StackPanel>
+</UserControl>

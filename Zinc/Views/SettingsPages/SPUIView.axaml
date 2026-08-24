@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Zinc.ViewModels"
+             xmlns:controls="using:FluentAvalonia.UI.Controls"
+             xmlns:controls1="using:Zinc.Controls"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Zinc.Views.SettingsPages.SPUIView"
+             x:DataType="vm:SPUIViewModel">
+    <Grid Margin="16,8,8,16"
+          VerticalAlignment="Stretch"
+          HorizontalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="外观" Theme="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,8"/>
+        <ScrollViewer Margin="0,8" Grid.Row="1">
+            <StackPanel Classes="settings-container animated-intro" Spacing="4">
+                <controls1:IconText Symbol="ColorBackground" Text="主题"/>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource DarkTheme}"
+                                             Header="应用主题"
+                                             Description="控制应用的明暗主题。">
+                    <controls:FASettingsExpander.Footer>
+                        <ComboBox HorizontalContentAlignment="Left"
+                                  SelectedIndex="{Binding Settings.Theme, Mode=TwoWay}">
+                            <controls1:IconText Symbol="WeatherMoon" Text="黑暗"/>
+                            <controls1:IconText Symbol="WeatherSunny" Text="明亮"/>
+                            <controls1:IconText Symbol="DarkTheme" Text="跟随系统"/>
+                        </ComboBox>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
