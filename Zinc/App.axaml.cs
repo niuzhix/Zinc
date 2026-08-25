@@ -3,8 +3,13 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
+using Zinc.Core.Abstractions;
+using Zinc.Core.Models;
+using Zinc.Core.Services;
 using Zinc.ViewModels;
 using Zinc.Views;
 
@@ -12,6 +17,8 @@ namespace Zinc
 {
     public partial class App : Application
     {
+        public static IServiceProvider Services { get; private set; } = null!;
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -24,9 +31,26 @@ namespace Zinc
 #endif
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                var services = new ServiceCollection();
+
+                services.AddSingleton<ISettingsService<AppSettings>>(
+                    _ => new SettingsService<AppSettings>("Zinc"));
+
+                services.AddSingleton<IDialogService, DialogService>();
+                services.AddSingleton<IFileService, FileService>();
+                services.AddSingleton<IJudgeService, JudgeService>();
+                services.AddSingleton<IProgramService, ProgramService>();
+
+                services.AddSingleton<MainWindowViewModel>();
+                services.AddSingleton<MainViewModel>();
+                services.AddTransient<SPUIViewModel>();
+                services.AddTransient<EditorViewModel>();
+
+                Services = services.BuildServiceProvider();
+
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = new MainWindowViewModel(),
+                    DataContext = ActivatorUtilities.CreateInstance<MainWindowViewModel>(App.Services)
                 };
             }
 

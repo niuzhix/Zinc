@@ -20,10 +20,11 @@ namespace Zinc.ViewModels;
 
 public partial class EditorViewModel : ObservableObject
 {
-    private readonly ISettingsService _settingsService;
+    private readonly ISettingsService<AppSettings> _settingsService;
     private readonly IDialogService _dialogService;
     private readonly IFileService _fileService;
     private readonly IProgramService _programService;
+    private readonly IJudgeService _judgeService;
 
     [ObservableProperty]
     private TextDocument content;
@@ -52,13 +53,12 @@ public partial class EditorViewModel : ObservableObject
         new FileFilter(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
     };
 
-    public EditorViewModel(string? _content = null, string? _path = null)
+    public EditorViewModel(ISettingsService<AppSettings> settingsService, IDialogService dialogService, IFileService fileService, IProgramService programService, IJudgeService judgeService, string? _content = null, string? _path = null)
     {
-        _settingsService = new SettingsService();
-        _settingsService.Preload();
-        _dialogService = new DialogService();
-        _fileService = new FileService();
-        _programService = new ProgramService();
+        _settingsService = settingsService;
+        _dialogService = dialogService;
+        _fileService = fileService;
+        _programService = programService;
 
         Content = new TextDocument();
         if (!string.IsNullOrEmpty(_content))
@@ -142,7 +142,6 @@ public partial class EditorViewModel : ObservableObject
         {
             CompileLog += $"[{DateTime.Now.ToLongTimeString()}] [样例为空，无需运行] {Filename}\n";
         }
-        var executor = new JudgeService();
         var options = new ExecutionOptions
         {
             ExecutablePath = $"{filepath.Split(".")[0]}.exe",
@@ -152,7 +151,7 @@ public partial class EditorViewModel : ObservableObject
             MemoryLimitMB = 256
         };
 
-        var result = await executor.ExecuteAsync(options);
+        var result = await _judgeService.ExecuteAsync(options);
 
         ResultCode = result.Result;
         Output = result.StandardOutput;
@@ -178,6 +177,6 @@ public partial class EditorViewModel : ObservableObject
         }
     }
 
-    public AppSettings Settings => _settingsService.appSettings;
+    public AppSettings Settings => _settingsService.Current;
     public void SaveSettings() => _settingsService.Save();
 }

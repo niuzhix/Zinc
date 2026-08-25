@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.MarkupExtensions;
 using FluentAvalonia.UI.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 using Zinc.Models;
@@ -18,7 +19,7 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
-        DataContext = new MainViewModel();
+        DataContext = ActivatorUtilities.CreateInstance<MainViewModel>(App.Services);
     }
 
     private void TabView_AddTabButtonClick(FATabView sender, System.EventArgs args)

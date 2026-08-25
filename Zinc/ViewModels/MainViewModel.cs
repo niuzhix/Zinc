@@ -31,10 +31,10 @@ public partial class MainViewModel : ObservableObject
         new FileFilter(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
     };
 
-    public MainViewModel()
+    public MainViewModel(IDialogService dialogService, IFileService fileService)
     {
-        _dialogService = new DialogService();
-        _fileService = new FileService();
+        _dialogService = dialogService;
+        _fileService = fileService;
         _selectedItem = Tabs[0];
     }
 

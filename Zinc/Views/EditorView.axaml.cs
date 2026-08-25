@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
+using Microsoft.Extensions.DependencyInjection;
 using TextMateSharp.Grammars;
 using Zinc.ViewModels;
 
@@ -13,7 +14,11 @@ public partial class EditorView : UserControl
     public EditorView(string? content = null, string? path = null)
     {
         InitializeComponent();
-        DataContext = new EditorViewModel(content, path);
+        DataContext = ActivatorUtilities.CreateInstance<EditorViewModel>(
+            App.Services,
+            content ?? "",
+            path ?? ""
+        );
 
         var _registryOptions = new RegistryOptions(ThemeName.DarkPlus);
         var _textMateInstallation = CodeEditor.InstallTextMate(_registryOptions);
