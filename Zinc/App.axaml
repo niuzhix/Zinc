@@ -14,6 +14,9 @@
 		<FontFamily x:Key="HarmonyOsSans">
 			avares://Zinc/Assets/Fonts/#HarmonyOS Sans SC
 		</FontFamily>
+		<FontFamily x:Key="FluentIcons">
+			avares://Zinc/Assets/Fonts/#FluentSystemIcons-Resizable
+		</FontFamily>
 		<SolidColorBrush x:Key="ACBrush" Color="#00CC00"/>
 		<SolidColorBrush x:Key="WABrush" Color="#FF0000"/>
 		<SolidColorBrush x:Key="TLEBrush" Color="#FFA500"/>

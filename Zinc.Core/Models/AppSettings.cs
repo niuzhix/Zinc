@@ -73,10 +73,17 @@ public abstract class ObservableObjects : INotifyPropertyChanged
 public class AppSettings : ObservableObjects
 {
     private int _theme = 0;
+    private int _colorSource = 1;
 
     public int Theme
     {
         get => _theme;
         set => SetProperty(ref _theme, value);
+    }
+
+    public int ColorSource
+    {
+        get => _colorSource;
+        set => SetProperty(ref _colorSource, value);
     }
 }
