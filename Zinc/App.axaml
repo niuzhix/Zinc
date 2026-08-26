@@ -1,4 +1,5 @@
 <Application xmlns="https://github.com/avaloniaui"
+             xmlns:controls="using:FluentAvalonia.UI.Controls"
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 x:Class="Zinc.App"
 			 xmlns:local="using:Zinc"

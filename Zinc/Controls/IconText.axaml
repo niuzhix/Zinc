@@ -8,14 +8,15 @@
              x:Class="Zinc.Controls.IconText"
              x:Name="Root">
     <StackPanel Orientation="Horizontal" Spacing="{Binding Spacing, ElementName=Root}">
-        <controls:FASymbolIcon Symbol="{Binding Symbol, ElementName=Root}"
-                               VerticalAlignment="Center"
-                               FontSize="16" />
+        <controls:FAFontIcon Glyph="{Binding Glyph, ElementName=Root}"
+                             VerticalAlignment="Center"
+                             FontSize="16"
+                             FontFamily="{StaticResource FluentIcons}"/>
         <TextBlock Text="{Binding Text, ElementName=Root}"
                    VerticalAlignment="Center"
                    LineSpacing="0"
                    Margin="0 0 0 -4"
                    x:Name="TextElement"
-                   IsVisible="{Binding Symbol, ElementName=Root, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                   IsVisible="{Binding Glyph, ElementName=Root, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
     </StackPanel>
 </UserControl>

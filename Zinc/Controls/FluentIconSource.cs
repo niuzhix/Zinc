@@ -1,12 +1,16 @@
-﻿using FluentAvalonia.UI.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
+using FluentAvalonia.UI.Controls;
 
 namespace Zinc.Controls;
 
-public class FluentIconSource : FASymbolIconSource
+public class FluentIconSource : FAFontIconSource
 {
-    public FluentIconSource(FASymbol symbol)
+    public FluentIconSource(string glyph)
     {
-        Symbol = symbol;
+        Glyph = glyph;
+        FontFamily = new FontFamily("avares://Zinc/Assets/Fonts/#FluentSystemIcons-Resizable");
     }
 
     public FluentIconSource ProvideValue() => this;

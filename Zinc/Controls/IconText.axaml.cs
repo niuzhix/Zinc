@@ -6,10 +6,10 @@ namespace Zinc.Controls;
 
 public partial class IconText : UserControl
 {
-    public static readonly StyledProperty<FASymbol?> SymbolProperty = AvaloniaProperty.Register<IconText, FASymbol?>(
-        nameof(FASymbol));
+    public static readonly StyledProperty<string?> SymbolProperty = AvaloniaProperty.Register<IconText, string?>(
+        nameof(Glyph));
 
-    public FASymbol? Symbol
+    public string? Glyph
     {
         get => GetValue(SymbolProperty);
         set => SetValue(SymbolProperty, value);

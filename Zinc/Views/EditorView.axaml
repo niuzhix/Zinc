@@ -42,13 +42,13 @@
 							Orientation="Horizontal"
 							Spacing="8">
 					<Button Command="{Binding CompileCommand}">
-						<controls1:IconText Symbol="Accept" Text="编译"/>
+						<controls1:IconText Glyph="&#xE295;" Text="编译"/>
 					</Button>
 					<Button Command="{Binding JudgeCommand}">
-						<controls1:IconText Symbol="Forward" Text="运行样例"/>
+						<controls1:IconText Glyph="&#xE182;" Text="运行样例"/>
 					</Button>
 					<Button Command="{Binding CompileCommand}">
-						<controls1:IconText Symbol="Play" Text="编译并运行"/>
+						<controls1:IconText Glyph="&#xE606;" Text="编译并运行"/>
 					</Button>
 				</StackPanel>
 				<TextBox Grid.Row="1"  
