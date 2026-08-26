@@ -1,7 +1,4 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
 using Microsoft.Extensions.DependencyInjection;
 using TextMateSharp.Grammars;

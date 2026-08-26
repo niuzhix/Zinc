@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices;
 
-namespace Zinc.Core.Abstractions;
+namespace Zinc.Core.Models;
 
 public class CompileOptions
 {

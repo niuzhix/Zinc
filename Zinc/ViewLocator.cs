@@ -3,7 +3,6 @@ using Avalonia.Controls.Templates;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Zinc.ViewModels;
 
 namespace Zinc
 {

@@ -1,11 +1,8 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Threading.Tasks;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
@@ -29,8 +26,9 @@ namespace Zinc.ViewModels
         public MainWindowViewModel(IFileService fileService, IDialogService dialogService, ISettingsService<AppSettings> settingsService)
         {
             _fileservice = fileService;
-            _dialogservice =dialogService;
+            _dialogservice = dialogService;
             _settings = settingsService;
+            ApplyTheme();
             _settings.SettingsChanged += (s, e) =>
             {
                 ApplyTheme();

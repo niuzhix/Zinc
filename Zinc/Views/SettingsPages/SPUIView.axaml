@@ -24,10 +24,11 @@
                                              Description="控制应用的明暗主题。">
                     <controls:FASettingsExpander.Footer>
                         <ComboBox HorizontalContentAlignment="Left"
-                                  SelectedIndex="{Binding Settings.Theme, Mode=TwoWay}">
+                                  SelectedIndex="{Binding Settings.Theme}">
                             <controls1:IconText Symbol="DarkTheme" Text="跟随系统"/>
                             <controls1:IconText Symbol="WeatherSunny" Text="明亮"/>
-                            <controls1:IconText Symbol="WeatherMoon" Text="黑暗"/>
+                             <controls1:IconText Symbol="WeatherMoon" Text="黑暗"/>
+                            
                         </ComboBox>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>

@@ -1,20 +1,12 @@
-﻿using Avalonia.Controls.Shapes;
-using Avalonia.Media;
-using AvaloniaEdit.Document;
-using AvaloniaEdit.TextMate;
+﻿using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
-using Zinc.Core.Services;
-using Zinc.Models;
-using Zinc.Views;
 
 namespace Zinc.ViewModels;
 
@@ -59,6 +51,7 @@ public partial class EditorViewModel : ObservableObject
         _dialogService = dialogService;
         _fileService = fileService;
         _programService = programService;
+        _judgeService = judgeService;
 
         Content = new TextDocument();
         if (!string.IsNullOrEmpty(_content))
@@ -134,7 +127,7 @@ public partial class EditorViewModel : ObservableObject
     [RelayCommand]
     private async Task JudgeAsync()
     {
-        if(string.IsNullOrEmpty(filepath))
+        if (string.IsNullOrEmpty(filepath))
         {
             return;
         }

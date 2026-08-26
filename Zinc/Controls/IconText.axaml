@@ -6,17 +6,16 @@
              xmlns:local="using:Zinc.Controls"
              mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="40"
              x:Class="Zinc.Controls.IconText"
-             x:DataType="local:IconText">
-    <StackPanel Orientation="Horizontal" Spacing="{Binding Spacing, RelativeSource={RelativeSource AncestorType=local:IconText}}">
-        <controls:FASymbolIcon Symbol="{Binding Symbol, RelativeSource={RelativeSource AncestorType=local:IconText}}"
-                       VerticalAlignment="Center"
-                       FontSize="16">
-        </controls:FASymbolIcon>
-        <TextBlock Text="{Binding Text, RelativeSource={RelativeSource AncestorType=local:IconText}}"
+             x:Name="Root">
+    <StackPanel Orientation="Horizontal" Spacing="{Binding Spacing, ElementName=Root}">
+        <controls:FASymbolIcon Symbol="{Binding Symbol, ElementName=Root}"
+                               VerticalAlignment="Center"
+                               FontSize="16" />
+        <TextBlock Text="{Binding Text, ElementName=Root}"
                    VerticalAlignment="Center"
                    LineSpacing="0"
                    Margin="0 0 0 -4"
                    x:Name="TextElement"
-                   IsVisible="{Binding Symbol, RelativeSource={RelativeSource AncestorType=local:IconText}, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                   IsVisible="{Binding Symbol, ElementName=Root, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
     </StackPanel>
 </UserControl>

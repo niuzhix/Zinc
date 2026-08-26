@@ -1,4 +1,6 @@
-﻿namespace Zinc.Core.Abstractions;
+﻿using Zinc.Core.Models;
+
+namespace Zinc.Core.Abstractions;
 
 public interface IDialogService
 {

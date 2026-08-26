@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Zinc.Core.Attributes;
 
 namespace Zinc.Core.Models;
 
@@ -71,18 +70,10 @@ public abstract class ObservableObjects : INotifyPropertyChanged
     }
 }
 
-public enum ThemeMode
-{
-    Light,
-    Dark,
-    System
-}
-
 public class AppSettings : ObservableObjects
 {
     private int _theme = 0;
 
-    [SettingsInfo("应用主题", enums: ["跟随系统", "明亮", "黑暗"], order: 1)]
     public int Theme
     {
         get => _theme;

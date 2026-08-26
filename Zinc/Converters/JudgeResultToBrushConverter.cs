@@ -1,10 +1,10 @@
-﻿using Avalonia.Data.Converters;
-using Avalonia.Media;
-using Zinc.Core.Models;
-using System.Globalization;
-using System;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data.Converters;
+using Avalonia.Media;
+using System;
+using System.Globalization;
+using Zinc.Core.Models;
 
 namespace Zinc.Converters;
 
