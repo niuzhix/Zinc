@@ -44,6 +44,8 @@ namespace Zinc.ViewModels
         public AppSettings Settings => _settings.Current;
         public void SaveSettings() => _settings.Save();
 
+        #region Settings
+
         private void ApplyTheme()
         {
             if (Application.Current is not null)
@@ -72,6 +74,8 @@ namespace Zinc.ViewModels
                 theme.CustomAccentColor = null;
             }
         }
+
+        #endregion Settings
 
         [RelayCommand]
         private async Task OpenFileAsync()

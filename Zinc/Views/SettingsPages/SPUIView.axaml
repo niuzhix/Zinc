@@ -46,7 +46,7 @@
                         </StackPanel>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>
-                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#F37D;}"
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF37D;}"
                                              Header="背景不透明度"
                                              Description="控制应用窗口的不透明度。">
                     <controls:FASettingsExpander.Footer>

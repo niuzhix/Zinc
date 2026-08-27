@@ -77,7 +77,7 @@ public class AppSettings : ObservableObjects
     private int _theme = 0;
     private bool _isCustomThemeColorEnabled = true;
     private Color _themeColor;
-    private double _opacity;
+    private double _opacity = 1;
 
     public int Theme
     {
