@@ -76,7 +76,7 @@ public class AppSettings : ObservableObjects
 {
     private int _theme = 0;
     private bool _isCustomThemeColorEnabled = true;
-    private Color _themecolor;
+    private Color _themeColor;
     private double _opacity;
 
     public int Theme
@@ -93,8 +93,8 @@ public class AppSettings : ObservableObjects
 
     public Color ThemeColor
     {
-        get => _themecolor;
-        set => SetProperty(ref _themecolor, value);
+        get => _themeColor;
+        set => SetProperty(ref _themeColor, value);
     }
 
     public double Opacity
