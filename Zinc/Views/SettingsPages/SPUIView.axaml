@@ -33,14 +33,27 @@
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>
                 <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xEC50;}"
-                                             Header="主题色来源"
-                                             Description="控制应用选取主题色的途径。">
+                                             Header="主题色"
+                                             Description="主界面强调颜色，禁用时使用系统强调色。">
                     <controls:FASettingsExpander.Footer>
-                        <ComboBox HorizontalAlignment="Left"
-                                  SelectedIndex="{Binding Settings.ColorSource}">
-                            <controls1:IconText Glyph="&#xED39;" Text="自定义" />
-                            <controls1:IconText Glyph="&#xEA1D;" Text="系统" />
-                        </ComboBox>
+                        <StackPanel Orientation="Horizontal">
+                            <ColorPicker VerticalAlignment="Center"
+                                         Margin="0,0,6,0"
+                                         Color="{Binding Settings.ThemeColor, Mode=TwoWay}"
+                                         IsVisible="{Binding Settings.IsCustomThemeColorEnabled}"/>
+                            <ToggleSwitch VerticalAlignment="Center"
+                                          IsChecked="{Binding Settings.IsCustomThemeColorEnabled}"/>
+                        </StackPanel>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#F37D;}"
+                                             Header="背景不透明度"
+                                             Description="控制应用窗口的不透明度。">
+                    <controls:FASettingsExpander.Footer>
+                         <Slider Width="180" Minimum="0" Maximum="1"
+                            Value="{Binding Settings.Opacity}"
+                            TickFrequency="0.05"
+                            IsSnapToTickEnabled="True"/>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>
             </StackPanel>

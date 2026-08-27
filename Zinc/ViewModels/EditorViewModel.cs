@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
+using Zinc.Abstractions;
+using Zinc.Models;
 
 namespace Zinc.ViewModels;
 

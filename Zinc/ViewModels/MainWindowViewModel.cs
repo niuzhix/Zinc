@@ -1,12 +1,16 @@
 ﻿using Avalonia;
+using Avalonia.Controls.Converters;
+using Avalonia.Media;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
+using Zinc.Abstractions;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
 using Zinc.Core.Services;
+using Zinc.Models;
 
 namespace Zinc.ViewModels
 {
@@ -29,9 +33,11 @@ namespace Zinc.ViewModels
             _dialogservice = dialogService;
             _settings = settingsService;
             ApplyTheme();
+            ApplyColor();
             _settings.SettingsChanged += (s, e) =>
             {
                 ApplyTheme();
+                ApplyColor();
             };
         }
 
@@ -47,6 +53,23 @@ namespace Zinc.ViewModels
                     : (Settings.Theme == 1)
                     ? ThemeVariant.Light
                     : ThemeVariant.Default;
+            }
+        }
+
+        private void ApplyColor()
+        {
+            var theme = App.Theme;
+            if (theme == null) return;
+
+            theme.PreferUserAccentColor = Settings.IsCustomThemeColorEnabled;
+
+            if (Settings.IsCustomThemeColorEnabled)
+            {
+                theme.CustomAccentColor = Settings.ThemeColor;
+            }
+            else
+            {
+                theme.CustomAccentColor = null;
             }
         }
 

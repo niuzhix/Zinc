@@ -1,6 +1,7 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 
-namespace Zinc.Core.Abstractions;
+namespace Zinc.Abstractions;
 
 public interface ISettingsService<T>
     where T : class, INotifyPropertyChanged, new()

@@ -1,11 +1,15 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using FluentAvalonia.Styling;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using Zinc.Abstractions;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
 using Zinc.Core.Services;
+using Zinc.Models;
+using Zinc.Services;
 using Zinc.ViewModels;
 using Zinc.Views;
 
@@ -14,6 +18,8 @@ namespace Zinc
     public partial class App : Application
     {
         public static IServiceProvider Services { get; private set; } = null!;
+
+        public static FluentAvaloniaTheme? Theme { get; private set; }
 
         public override void Initialize()
         {
@@ -48,6 +54,9 @@ namespace Zinc
                 {
                     DataContext = ActivatorUtilities.CreateInstance<MainWindowViewModel>(App.Services)
                 };
+
+                Theme = App.Current.Styles[0] as FluentAvaloniaTheme;
+                base.OnFrameworkInitializationCompleted();
             }
 
             base.OnFrameworkInitializationCompleted();

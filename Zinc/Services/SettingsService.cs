@@ -1,10 +1,11 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Zinc.Core.Abstractions;
-using Zinc.Core.Models;
+using Zinc.Abstractions;
 
-namespace Zinc.Core.Services;
+namespace Zinc.Services;
 
 public class SettingsService<T> : ISettingsService<T>
     where T : class, INotifyPropertyChanged, new()

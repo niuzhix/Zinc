@@ -1,7 +1,9 @@
-﻿using System.ComponentModel;
+﻿using Avalonia.Media;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Zinc.Core.Models;
+namespace Zinc.Models;
 
 public abstract class ObservableObjects : INotifyPropertyChanged
 {
@@ -73,7 +75,9 @@ public abstract class ObservableObjects : INotifyPropertyChanged
 public class AppSettings : ObservableObjects
 {
     private int _theme = 0;
-    private int _colorSource = 1;
+    private bool _isCustomThemeColorEnabled = true;
+    private Color _themecolor;
+    private double _opacity;
 
     public int Theme
     {
@@ -81,9 +85,21 @@ public class AppSettings : ObservableObjects
         set => SetProperty(ref _theme, value);
     }
 
-    public int ColorSource
+    public bool IsCustomThemeColorEnabled
     {
-        get => _colorSource;
-        set => SetProperty(ref _colorSource, value);
+        get => _isCustomThemeColorEnabled;
+        set => SetProperty(ref _isCustomThemeColorEnabled, value);
+    }
+
+    public Color ThemeColor
+    {
+        get => _themecolor;
+        set => SetProperty(ref _themecolor, value);
+    }
+
+    public double Opacity
+    {
+        get => _opacity;
+        set => SetProperty(ref _opacity, value);
     }
 }
