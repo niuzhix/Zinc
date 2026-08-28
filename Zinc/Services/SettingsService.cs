@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Zinc.Abstractions;
+using Zinc.Converters;
 
 namespace Zinc.Services;
 
@@ -35,7 +36,10 @@ public class SettingsService<T> : ISettingsService<T>
             WriteIndented = true,
             PropertyNameCaseInsensitive = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new JsonStringEnumConverter() }
+            Converters = {
+                new JsonStringEnumConverter(),
+                new FontFamilyToJsonConverter()
+            }
         };
 
         _current = Load();

@@ -5,6 +5,7 @@
              xmlns:vm="using:Zinc.ViewModels"
              xmlns:controls="using:FluentAvalonia.UI.Controls"
              xmlns:controls1="using:Zinc.Controls"
+             xmlns:converters="using:Zinc.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Zinc.Views.SettingsPages.SPUIView"
              x:DataType="vm:SPUIViewModel">
@@ -54,6 +55,51 @@
                             Value="{Binding Settings.Opacity}"
                             TickFrequency="0.05"
                             IsSnapToTickEnabled="True"/>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+                <Separator Margin="0 16 0 8" />
+                <controls1:IconText Glyph="&#xF26F;" Text="字体" Margin="0 0 0 8" />
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF271;}"
+                                             Header="自定义字体"
+                                             Description="代码编辑器显示的字体。">
+                    <controls:FASettingsExpander.Footer>
+                        <ComboBox x:Name="FontComboBox"
+                              ItemsSource="{Binding FontFamilies}"
+                              Foreground="{DynamicResource MaterialDesignBody}"
+                              MaxDropDownHeight="360"
+                              SelectedItem="{Binding Settings.EditorFont}"
+                              HorizontalAlignment="Left">
+                        <ComboBox.Styles>
+                            <Style Selector="ComboBoxItem">
+                                <Setter Property="MinHeight" Value="32"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            </Style>
+                            <Style Selector="#FontComboBox /template/ Popup#PART_Popup">
+                                <Setter Property="Width" Value="280"/>
+                                <Setter Property="Placement" Value="BottomEdgeAlignedRight"/>
+                            </Style>
+                        </ComboBox.Styles>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock FontFamily="{Binding}" FontWeight="Normal"
+                                           ToolTip.Tip="{Binding Name}"
+                                           MaxWidth="240"
+                                           Height="20"
+                                           TextWrapping="NoWrap"
+                                           TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Styles>
+                                        <Style Selector="TextBlock">
+                                            <Style Selector="^.DefaultFont">
+                                                <Setter Property="Text" Value="HarmonyOS Sans SC（默认）"/>
+                                            </Style>
+                                            <Setter Property="Text" Value="{Binding }" />
+                                        </Style>
+                                    </TextBlock.Styles>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>
             </StackPanel>

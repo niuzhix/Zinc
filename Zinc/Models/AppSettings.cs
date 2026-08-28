@@ -75,9 +75,10 @@ public abstract class ObservableObjects : INotifyPropertyChanged
 public class AppSettings : ObservableObjects
 {
     private int _theme = 0;
-    private bool _isCustomThemeColorEnabled = true;
+    private bool _isCustomThemeColorEnabled = false;
     private Color _themeColor;
     private double _opacity = 1;
+    private FontFamily _editorFont = new FontFamily("aware://Zinc/Assets/Fonts/#FiraCode Nerd Font Propo");
 
     public int Theme
     {
@@ -101,5 +102,11 @@ public class AppSettings : ObservableObjects
     {
         get => _opacity;
         set => SetProperty(ref _opacity, value);
+    }
+
+    public FontFamily EditorFont
+    {
+        get => _editorFont;
+        set => SetProperty(ref _editorFont, value);
     }
 }

@@ -27,7 +27,7 @@
 							 HorizontalAlignment="Stretch"
 							 VerticalAlignment="Stretch"
 							 ShowLineNumbers="True"
-							 FontFamily="FiraCode,Cascadia Code,Consolas,Menlo,Monospace"
+							 FontFamily="{Binding Settings.EditorFont}"
 							 SyntaxHighlighting="C++"/>
 			<Grid Grid.Column="1"
 				  VerticalAlignment="Stretch"
