@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:controls="using:FluentAvalonia.UI.Controls"
+        xmlns:controls1="using:Zinc.Controls"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -15,7 +16,7 @@
                                OpenPaneLength="283"
                                SelectionChanged="FANavigationView_SelectionChanged">
         <controls:FANavigationView.MenuItems>
-            <controls:FANavigationViewItem Content="基本" Tag="UI" IconSource="Settings"/>
+            <controls:FANavigationViewItem Content="外观" Tag="UI" IconSource="{controls1:FluentIconSource &#xE51E;}"/>
         </controls:FANavigationView.MenuItems>
     </controls:FANavigationView>
 </Window>

@@ -12,6 +12,9 @@ namespace Zinc.ViewModels;
 
 public partial class SPUIViewModel : ObservableObject
 {
+    [ObservableProperty]
+    public string testText = "#include <bits/stdc++.h>\nusing namespace std;\nint main(){\n    //处理逻辑\n    return 0;\n}";
+
     private readonly ISettingsService<AppSettings> _settingsService;
 
     public AppSettings Settings => _settingsService.Current;

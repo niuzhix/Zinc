@@ -80,6 +80,7 @@ public class AppSettings : ObservableObjects
     private double _opacity = 1;
     private FontFamily _editorFont = new FontFamily("aware://Zinc/Assets/Fonts/#FiraCode Nerd Font Propo");
     private FontWeight _editorFontWeight = FontWeight.Normal;
+    private double _editorFontSize = 16;
 
     public int Theme
     {
@@ -115,5 +116,11 @@ public class AppSettings : ObservableObjects
     {
         get => _editorFontWeight;
         set => SetProperty(ref _editorFontWeight, value);
+    }
+
+    public double EditorFontSize
+    {
+        get => _editorFontSize;
+        set => SetProperty(ref _editorFontSize, value);
     }
 }

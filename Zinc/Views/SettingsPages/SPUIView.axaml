@@ -19,7 +19,7 @@
         <TextBlock Grid.Row="0" Text="外观" Theme="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,8"/>
         <ScrollViewer Margin="0,8" Grid.Row="1">
             <StackPanel Classes="settings-container animated-intro" Spacing="4">
-                <controls1:IconText Glyph="&#xE51E;" Text="主题"/>
+                <controls1:IconText Glyph="&#xE51E;" Text="主题" Margin="0,0,0,8"/>
                 <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xE5CB;}"
                                              Header="应用主题"
                                              Description="控制应用的明暗主题。">
@@ -132,6 +132,29 @@
                         </ComboBox>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF273;}"
+                                             Header="字体大小"
+                                             Description="控制代码编辑器的字体大小。">
+                    <controls:FASettingsExpander.Footer>
+                        <StackPanel Orientation="Horizontal">
+                            <controls:FANumberBox Value="{Binding Settings.EditorFontSize}"
+                                                  SpinButtonPlacementMode="Inline"
+                                                  SimpleNumberFormat="F0"
+                                                  Margin="0,0,6,0"
+                                                  MinWidth="165"
+                                                  Minimum="1"
+                                                  Maximum="40"/>
+                            <TextBlock Text="px" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </controls:FASettingsExpander.Footer>
+                    
+                </controls:FASettingsExpander>
+                <controls1:IconText Glyph="&#xF26F;" Text="字体预览" Margin="0,0,0,8"/>
+                <TextBox Text="{Binding TestText}"
+                         FontFamily="{Binding Settings.EditorFont}"
+                         FontWeight="{Binding Settings.EditorFontWeight}"
+                         FontSize="{Binding Settings.EditorFontSize}"
+                         Height="180"/>
             </StackPanel>
         </ScrollViewer>
     </Grid>
