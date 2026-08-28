@@ -28,6 +28,7 @@
 							 VerticalAlignment="Stretch"
 							 ShowLineNumbers="True"
 							 FontFamily="{Binding Settings.EditorFont}"
+							 FontWeight="{Binding Settings.EditorFontWeight}"
 							 SyntaxHighlighting="C++"/>
 			<Grid Grid.Column="1"
 				  VerticalAlignment="Stretch"

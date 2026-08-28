@@ -102,6 +102,36 @@
                     </ComboBox>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF26F;}"
+                                             Header="自定义字重"
+                                             Description="代码编辑器显示的字体粗细，需要对应字体支持。">
+                    <controls:FASettingsExpander.Footer>
+                        <ComboBox SelectedItem="{Binding Settings.EditorFontWeight}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" FontWeight="{Binding}"
+                                               ToolTip.Tip="{Binding}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                            <x:Static Member="FontWeight.Thin" />
+                            <!--<x:Static Member="FontWeights.UltraLight"/>-->
+                            <x:Static Member="FontWeight.ExtraLight" />
+                            <x:Static Member="FontWeight.Light" />
+                            <x:Static Member="FontWeight.Normal" />
+                            <!--<x:Static Member="FontWeights.Regular"/>-->
+                            <x:Static Member="FontWeight.Medium" />
+                            <!--<x:Static Member="FontWeights.DemiBold"/>-->
+                            <x:Static Member="FontWeight.SemiBold" />
+                            <x:Static Member="FontWeight.Bold" />
+                            <x:Static Member="FontWeight.ExtraBold" />
+                            <!--<x:Static Member="FontWeights.UltraBold"/>-->
+                            <x:Static Member="FontWeight.Black" />
+                            <!--<x:Static Member="FontWeights.Heavy"/>-->
+                            <x:Static Member="FontWeight.ExtraBlack" />
+                            <!--<x:Static Member="FontWeights.UltraBlack"/>-->
+                        </ComboBox>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
             </StackPanel>
         </ScrollViewer>
     </Grid>
