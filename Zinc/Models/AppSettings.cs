@@ -78,8 +78,8 @@ public class AppSettings : ObservableObjects
     private bool _isCustomThemeColorEnabled = false;
     private Color _themeColor;
     private double _opacity = 1;
-    private FontFamily _editorFont = new FontFamily("aware://Zinc/Assets/Fonts/#FiraCode Nerd Font Propo");
-    private FontWeight _editorFontWeight = FontWeight.Normal;
+    private FontFamily _editorFont = new FontFamily("avares://Zinc/Assets/Fonts/#FiraCode Nerd Font Propo");
+    private FontWeight _editorFontWeight = FontWeight.Medium;
     private double _editorFontSize = 16;
 
     public int Theme
