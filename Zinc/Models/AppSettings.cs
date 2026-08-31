@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Zinc.Core.Models;
 
 namespace Zinc.Models;
 
 public abstract class ObservableObjects : INotifyPropertyChanged
 {
-    private readonly Dictionary<string, ObservableObjects> _childObjects = new();
+
+    private readonly Dictionary<string, ObservableObjects> _childObjects = [];
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -78,9 +80,14 @@ public class AppSettings : ObservableObjects
     private bool _isCustomThemeColorEnabled = false;
     private Color _themeColor;
     private double _opacity = 1;
-    private FontFamily _editorFont = new FontFamily("avares://Zinc/Assets/Fonts/#FiraCode Nerd Font Propo");
+    private FontFamily _editorFont = new("avares://Zinc/Assets/Fonts/#FiraCode Nerd Font Propo");
     private FontWeight _editorFontWeight = FontWeight.Medium;
     private double _editorFontSize = 16;
+    private bool _enableO2 = true;
+    private bool _enableGDB = true;
+    private CppStandard _standardVersion = CppStandard.Cpp11;
+    private bool _warningCheck = true;
+    private bool _overAddressCheck = false;
 
     public int Theme
     {
@@ -122,5 +129,35 @@ public class AppSettings : ObservableObjects
     {
         get => _editorFontSize;
         set => SetProperty(ref _editorFontSize, value);
+    }
+
+    public bool EnableO2
+    {
+        get => _enableO2;
+        set => SetProperty(ref _enableO2, value);
+    }
+
+    public bool EnableGDB
+    {
+        get => _enableGDB;
+        set => SetProperty(ref _enableGDB, value);
+    }
+
+    public CppStandard StandardVersion
+    {
+        get => _standardVersion;
+        set => SetProperty(ref _standardVersion, value);
+    }
+
+    public bool WarningCheck
+    {
+        get => _warningCheck;
+        set => SetProperty(ref _warningCheck, value);
+    }
+
+    public bool OverAddressCheck
+    {
+        get => _overAddressCheck;
+        set => SetProperty(ref _overAddressCheck, value);
     }
 }

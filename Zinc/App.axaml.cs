@@ -46,6 +46,7 @@ namespace Zinc
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<MainViewModel>();
                 services.AddTransient<SPUIViewModel>();
+                services.AddTransient<SPCompileViewModel>();
                 services.AddTransient<EditorViewModel>();
 
                 Services = services.BuildServiceProvider();

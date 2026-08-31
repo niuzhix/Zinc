@@ -21,7 +21,7 @@ public class JudgeResultToBrushConverter : IValueConverter
                 JudgeResult.TLE => Application.Current.FindResource("TLEBrush") as IBrush,
                 JudgeResult.RE => Application.Current.FindResource("REBrush") as IBrush,
                 JudgeResult.CE => Application.Current.FindResource("CEBrush") as IBrush,
-                _ => Application.Current.FindResource("UKBrush") as IBrush
+                _ => Application.Current.FindResource("UKEBrush") as IBrush
             };
         }
         return Brushes.Gray;

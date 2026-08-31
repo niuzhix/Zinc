@@ -88,7 +88,7 @@ public class ProgramService : IProgramService
         {
             result.IsSuccess = false;
             result.ErrorType = CompileErrorType.InternalError;
-            result.ErrorMessage = $"内部错误";
+            result.ErrorMessage = "内部错误";
             result.Output = ex.StackTrace ?? string.Empty;
             result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
             return result;

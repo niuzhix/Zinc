@@ -17,6 +17,8 @@
                                SelectionChanged="FANavigationView_SelectionChanged">
         <controls:FANavigationView.MenuItems>
             <controls:FANavigationViewItem Content="外观" Tag="UI" IconSource="{controls1:FluentIconSource &#xE51E;}"/>
+
+            <controls:FANavigationViewItem Content="编译" Tag="Compile" IconSource="{controls1:FluentIconSource &#xE423;}"/>
         </controls:FANavigationView.MenuItems>
     </controls:FANavigationView>
 </Window>

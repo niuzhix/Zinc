@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:compilerservices="using:System.Runtime.CompilerServices"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="using:Zinc.Core.Models"
+             xmlns:vm="using:Zinc.ViewModels"
+             xmlns:controls="using:FluentAvalonia.UI.Controls"
+             xmlns:controls1="using:Zinc.Controls"
+             xmlns:converters="using:Zinc.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Zinc.Views.SettingsPages.SPCompileView"
+             x:DataType="vm:SPCompileViewModel">
+    <Grid Margin="16,8,8,16"
+          VerticalAlignment="Stretch"
+          HorizontalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="编译" Theme="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,8"/>
+        <ScrollViewer Margin="0,8" Grid.Row="1">
+            <StackPanel Classes="settings-container animated-intro" Spacing="4">
+                <controls1:IconText Glyph="&#xE418;" Text="选项" Margin="0,0,0,8"/>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xEEA1;}"
+                                             Header="启用O2编译优化"
+                                             Description="编译时加入 “-O2” 优化选项。">
+                    <controls:FASettingsExpander.Footer>
+                        <ToggleSwitch IsChecked="{Binding Settings.EnableO2}"/>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xE161;}"
+                                             Header="C++编译标准"
+                                             Description="编译源代码所使用的ISO标准。推荐值为C++14。">
+                    <controls:FASettingsExpander.Footer>
+                        <ComboBox SelectedItem="{Binding Settings.StandardVersion}">
+                            <x:Static Member="models:CppStandard.Cpp98"/>
+                            <x:Static Member="models:CppStandard.Cpp03"/>
+                            <x:Static Member="models:CppStandard.Cpp11"/>
+                            <x:Static Member="models:CppStandard.Cpp14"/>
+                            <x:Static Member="models:CppStandard.Cpp17"/>
+                            <x:Static Member="models:CppStandard.Cpp20"/>
+                            <x:Static Member="models:CppStandard.Cpp23"/>
+                            <x:Static Member="models:CppStandard.Cpp26"/>
+                        </ComboBox>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+                <controls:FAInfoBar Message="开启以下选项可以得到更详细的运行调试/错误报告信息，但可能会严重拖慢运行时间，如果因开启以下选项而导致 TLE（超时），请尝试打开 O2 优化或关闭下列选项。"
+                                    IsOpen="True"
+                                    Severity="Warning"/>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xEEF5;}"
+                                             Header="启用 GDB 运行调试"
+                                             Description="运行时获得更详细的调试报告。注意：如果您不知道如何使用 GDB 调试 C++ 程序，请将此设置关闭。">
+                    <controls:FASettingsExpander.Footer>
+                        <ToggleSwitch IsChecked="{Binding Settings.EnableGDB}"/>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xE809;}"
+                                             Header="启用编译警告"
+                                             Description="编译时提供更详细的错误报告。">
+                    <controls:FASettingsExpander.Footer>
+                        <ToggleSwitch IsChecked="{Binding Settings.WarningCheck}"/>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xE081;}"
+                                             Header="启用地址消毒（数组越界检查）"
+                                             Description="运行时阻止数组越界而导致的内存泄漏。注意：此选项可能导致程序作出未定义行为，且严重拖慢运行时间，如果不是遇到了无法追溯的 Runtime ERROR，请关闭此选项。">
+                    <controls:FASettingsExpander.Footer>
+                        <ToggleSwitch IsChecked="{Binding Settings.OverAddressCheck}"/>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

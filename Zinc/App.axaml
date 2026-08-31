@@ -23,7 +23,7 @@
 		<SolidColorBrush x:Key="TLEBrush" Color="#FFA500"/>
 		<SolidColorBrush x:Key="REBrush" Color="#FF00FF"/>
 		<SolidColorBrush x:Key="CEBrush" Color="#0000FF"/>
-		<SolidColorBrush x:Key="UKBrush" Color="#808080"/>
+		<SolidColorBrush x:Key="UKEBrush" Color="#808080"/>
 	</Application.Resources>
 
 	<Application.Styles>

@@ -108,7 +108,7 @@
                     <controls:FASettingsExpander.Footer>
                         <ComboBox SelectedItem="{Binding Settings.EditorFontWeight}">
                             <ComboBox.ItemTemplate>
-                                <DataTemplate>
+                                <DataTemplate x:DataType="FontWeight">
                                     <TextBlock Text="{Binding}" FontWeight="{Binding}"
                                                ToolTip.Tip="{Binding}" />
                                 </DataTemplate>

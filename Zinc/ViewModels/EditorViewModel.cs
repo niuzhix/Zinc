@@ -42,10 +42,10 @@ public partial class EditorViewModel : ObservableObject
     private JudgeResult? resultCode;
 
     private string? filepath = string.Empty;
-    private readonly IReadOnlyList<FileFilter> _filters = new List<FileFilter>()
-    {
-        new FileFilter(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
-    };
+    private readonly IReadOnlyList<FileFilter> _filters =
+    [
+        new(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
+    ];
 
     public EditorViewModel(ISettingsService<AppSettings> settingsService, IDialogService dialogService, IFileService fileService, IProgramService programService, IJudgeService judgeService, string? _content = null, string? _path = null)
     {
@@ -112,14 +112,14 @@ public partial class EditorViewModel : ObservableObject
         var options = new CompileOptions
         {
             CodePath = filepath,
-            enableO2 = true,
-            enableGDB = true,
-            StandardVersion = CppStandard.Cpp17,
-            warningCheck = true,
-            overAddressCheck = false
+            enableO2 = Settings.EnableO2,
+            enableGDB = Settings.EnableGDB,
+            StandardVersion = Settings.StandardVersion,
+            warningCheck = Settings.WarningCheck,
+            overAddressCheck = Settings.OverAddressCheck
         };
 
-        CompileLog += $"[{DateTime.Now.ToLongTimeString()}] [开始编译] {Filename}\n";
+        CompileLog += $"[{DateTime.Now:T}] [开始编译] {Filename}\n";
 
         CompileResult result = await _programService.CompileAsync(options);
 
@@ -135,7 +135,8 @@ public partial class EditorViewModel : ObservableObject
         }
         if (string.IsNullOrEmpty(Input) || string.IsNullOrEmpty(Answer))
         {
-            CompileLog += $"[{DateTime.Now.ToLongTimeString()}] [样例为空，无需运行] {Filename}\n";
+            CompileLog += $"[{DateTime.Now:T}] [样例为空，无需运行] {Filename}\n";
+            return;
         }
         var options = new ExecutionOptions
         {
