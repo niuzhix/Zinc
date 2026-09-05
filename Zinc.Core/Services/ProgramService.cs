@@ -106,7 +106,7 @@ public class ProgramService : IProgramService
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "where",
+                    FileName = System.OperatingSystem.IsWindows() ? "where":"which",
                     Arguments = "g++",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -151,17 +151,33 @@ public class ProgramService : IProgramService
 
         if (compilers.Count == 0)
         {
-            var fallbackPaths = new[]
+            if (System.OperatingSystem.IsWindows())
             {
+                var fallbackPaths = new[]
+                {
                 @"C:\mingw64\bin\g++.exe",
                 @"C:\MinGW\bin\g++.exe",
                 @"C:\Program Files\mingw-w64\bin\g++.exe",
                 @"C:\msys64\mingw64\bin\g++.exe",
                 @"C:\msys64\ucrt64\bin\g++.exe"
-            };
+                };
 
-            foreach (var path in fallbackPaths)
+                foreach (var path in fallbackPaths)
+                {
+                    if (File.Exists(path) && foundPaths.Add(path))
+                    {
+                        compilers.Add(new CompilerInfo
+                        {
+                            Path = path,
+                            Version = GetCompilerVersion(path),
+                            IsDefault = compilers.Count == 0
+                        });
+                    }
+                }
+            }
+            else
             {
+                var path = @"/usr/local/g++";
                 if (File.Exists(path) && foundPaths.Add(path))
                 {
                     compilers.Add(new CompilerInfo
@@ -243,7 +259,7 @@ public class ProgramService : IProgramService
 
     private string GetOutputPath(string codePath)
     {
-        return Path.ChangeExtension(codePath, ".exe");
+        return System.OperatingSystem.IsWindows() ? Path.ChangeExtension(codePath, ".exe") : Path.ChangeExtension(codePath, ".o");
     }
 
     private string GetStandardString(CppStandard standard)
