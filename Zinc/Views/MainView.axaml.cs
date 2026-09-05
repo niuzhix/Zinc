@@ -11,6 +11,9 @@ public partial class MainView : UserControl
 {
     int Count = 0;
 
+    bool IsSettingsOpen = false;
+    private Window? _settingsWindow;
+
     public MainView()
     {
         InitializeComponent();
@@ -44,7 +47,25 @@ public partial class MainView : UserControl
 
     private void Settings_Click(object? sender, RoutedEventArgs e)
     {
-        var settingsWindow = new SettingsWindow();
-        settingsWindow.Show(TopLevel.GetTopLevel(this) as Window);
+        if(!IsSettingsOpen){
+            _settingsWindow = new SettingsWindow();
+            _settingsWindow.Show(TopLevel.GetTopLevel(this) as Window);
+            _settingsWindow.Closing += SettingsWindow_Closing;
+            IsSettingsOpen = true;
+        }
+        else
+        {
+            _settingsWindow?.Activate();
+        }
+    }
+
+    private void SettingsWindow_Closing(object? sender, WindowClosingEventArgs e)
+    {
+        if(sender is Window window)
+        {
+            window.Closing -= SettingsWindow_Closing;
+        }
+        _settingsWindow = null;
+        IsSettingsOpen = false;
     }
 }
