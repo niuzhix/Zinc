@@ -5,7 +5,7 @@
 		<Nullable>enable</Nullable>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-		<Version>0.3.0.0</Version>
+		<Version>0.4.1.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -36,6 +36,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Views\SettingsPages\SPAboutView.axaml.cs">
+	    <DependentUpon>SPAboutView.axaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\SettingsPages\SPCompileView.axaml.cs">
 	    <DependentUpon>SPCompileView.axaml</DependentUpon>
 	  </Compile>

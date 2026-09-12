@@ -21,6 +21,8 @@ namespace Zinc
 
         public static FluentAvaloniaTheme? Theme { get; private set; }
 
+        public static string? AppVersion { get; set; }
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -47,6 +49,7 @@ namespace Zinc
                 services.AddSingleton<MainViewModel>();
                 services.AddTransient<SPUIViewModel>();
                 services.AddTransient<SPCompileViewModel>();
+                services.AddTransient<SPAboutViewModel>();
                 services.AddTransient<EditorViewModel>();
 
                 Services = services.BuildServiceProvider();
@@ -85,7 +88,8 @@ namespace Zinc
         private static string GetVersion()
         {
             var version = typeof(Program).Assembly.GetName().Version;
-            return version?.ToString() ?? "1.0.0";
+            AppVersion = version?.ToString() ?? "1.0.0";
+            return AppVersion;
         }
     }
 }
