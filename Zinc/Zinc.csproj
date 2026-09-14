@@ -42,5 +42,8 @@
 	  <Compile Update="Views\SettingsPages\SPCompileView.axaml.cs">
 	    <DependentUpon>SPCompileView.axaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Views\SettingsPages\SPEditView.axaml.cs">
+	    <DependentUpon>SPEditView.axaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 </Project>

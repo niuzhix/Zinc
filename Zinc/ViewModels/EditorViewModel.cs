@@ -173,6 +173,13 @@ public partial class EditorViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private async Task CompileAndJudgeAsync()
+    {
+        await CompileAsync();
+        await JudgeAsync();
+    }
+
     public AppSettings Settings => _settingsService.Current;
     public void SaveSettings() => _settingsService.Save();
 }
