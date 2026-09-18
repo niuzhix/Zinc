@@ -98,10 +98,7 @@ public partial class EditorViewModel : ObservableObject
     [RelayCommand]
     private async Task CompileAsync()
     {
-        if (string.IsNullOrEmpty(filepath))
-        {
-            return;
-        }
+        await SaveAsync();
         var compilers = _programService.FindAllCompilers();
         foreach (var compiler in compilers)
         {

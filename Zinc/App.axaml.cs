@@ -12,6 +12,7 @@ using Zinc.Models;
 using Zinc.Services;
 using Zinc.ViewModels;
 using Zinc.Views;
+using Zinc.Views.SettingsPages;
 
 namespace Zinc
 {
@@ -48,6 +49,7 @@ namespace Zinc
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<MainViewModel>();
                 services.AddTransient<SPUIViewModel>();
+                services.AddTransient<SPEditViewModel>();
                 services.AddTransient<SPCompileViewModel>();
                 services.AddTransient<SPAboutViewModel>();
                 services.AddTransient<EditorViewModel>();
