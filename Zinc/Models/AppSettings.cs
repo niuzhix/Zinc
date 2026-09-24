@@ -88,6 +88,10 @@ public class AppSettings : ObservableObjects
     private CppStandard _standardVersion = CppStandard.Cpp11;
     private bool _warningCheck = true;
     private bool _overAddressCheck = false;
+    private bool _showLineNumbers = true;
+    private bool _highlightCurrentLine = true;
+    private bool _wordWrap = false;
+    private bool _cutCopyWholeLine = true;
 
     public int Theme
     {
@@ -159,5 +163,29 @@ public class AppSettings : ObservableObjects
     {
         get => _overAddressCheck;
         set => SetProperty(ref _overAddressCheck, value);
+    }
+
+    public bool ShowLineNumbers
+    {
+        get => _showLineNumbers;
+        set => SetProperty(ref _showLineNumbers, value);
+    }
+
+    public bool HighlightCurrentLine
+    {
+        get => _highlightCurrentLine;
+        set => SetProperty(ref _highlightCurrentLine, value);
+    }
+
+    public bool WordWrap
+    {
+        get => _wordWrap;
+        set => SetProperty(ref _wordWrap, value);
+    }
+
+    public bool CutCopyWholeLine
+    {
+        get => _cutCopyWholeLine;
+        set => SetProperty(ref _cutCopyWholeLine, value);
     }
 }

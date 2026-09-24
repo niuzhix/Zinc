@@ -1,13 +1,14 @@
-﻿using AvaloniaEdit.Document;
+﻿using AvaloniaEdit;
+using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Zinc.Abstractions;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
-using Zinc.Abstractions;
 using Zinc.Models;
 
 namespace Zinc.ViewModels;
@@ -41,6 +42,17 @@ public partial class EditorViewModel : ObservableObject
     [ObservableProperty]
     private JudgeResult? resultCode;
 
+    [ObservableProperty]
+    private TextEditorOptions editorOptions = new()
+    {
+        ShowTabs = true,
+        ShowSpaces = true,
+        ShowEndOfLine = true,
+        EnableTextDragDrop = true,
+        HighlightCurrentLine = false,
+        CutCopyWholeLine = true,
+    };
+
     private string? filepath = string.Empty;
     private readonly IReadOnlyList<FileFilter> _filters =
     [
@@ -62,6 +74,9 @@ public partial class EditorViewModel : ObservableObject
         }
         filepath = _path;
         Filename = _path?.Split("\\").Last();
+
+        editorOptions.HighlightCurrentLine = Settings.HighlightCurrentLine;
+        editorOptions.CutCopyWholeLine = Settings.CutCopyWholeLine;
     }
 
     [RelayCommand]

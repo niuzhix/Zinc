@@ -34,16 +34,4 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Zinc.Core\Zinc.Core.csproj" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Update="Views\SettingsPages\SPAboutView.axaml.cs">
-	    <DependentUpon>SPAboutView.axaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\SettingsPages\SPCompileView.axaml.cs">
-	    <DependentUpon>SPCompileView.axaml</DependentUpon>
-	  </Compile>
-	  <Compile Update="Views\SettingsPages\SPEditView.axaml.cs">
-	    <DependentUpon>SPEditView.axaml</DependentUpon>
-	  </Compile>
-	</ItemGroup>
 </Project>

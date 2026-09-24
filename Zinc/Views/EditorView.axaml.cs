@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using AvaloniaEdit.TextMate;
 using Microsoft.Extensions.DependencyInjection;
 using TextMateSharp.Grammars;
+using Zinc.Models;
 using Zinc.ViewModels;
 
 namespace Zinc.Views;

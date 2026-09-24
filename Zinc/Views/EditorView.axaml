@@ -26,10 +26,12 @@
 							 Document="{Binding Content,Mode=TwoWay}"
 							 HorizontalAlignment="Stretch"
 							 VerticalAlignment="Stretch"
-							 ShowLineNumbers="True"
 							 FontFamily="{Binding Settings.EditorFont}"
 							 FontWeight="{Binding Settings.EditorFontWeight}"
 							 FontSize="{Binding Settings.EditorFontSize}"
+							 ShowLineNumbers="{Binding Settings.ShowLineNumbers}"
+							 WordWrap="{Binding Settings.WordWrap}"
+							 Options="{Binding EditorOptions}"
 							 SyntaxHighlighting="C++"/>
 			<Grid Grid.Column="1"
 				  VerticalAlignment="Stretch"
