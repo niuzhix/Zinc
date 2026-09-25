@@ -24,6 +24,7 @@
 		<SolidColorBrush x:Key="REBrush" Color="#FF00FF"/>
 		<SolidColorBrush x:Key="CEBrush" Color="#0000FF"/>
 		<SolidColorBrush x:Key="UKEBrush" Color="#808080"/>
+		<SolidColorBrush x:Key="CoreSplashScreenBackground" Color="{DynamicResource ThemeBackgroundColor}"/>
 	</Application.Resources>
 
 	<Application.Styles>

@@ -1,5 +1,6 @@
 using FluentAvalonia.UI.Windowing;
 using Microsoft.Extensions.DependencyInjection;
+using Zinc.Services;
 using Zinc.ViewModels;
 
 namespace Zinc.Views;
@@ -12,5 +13,6 @@ public partial class MainWindow : FAAppWindow
         DataContext = App.Services.GetRequiredService<MainWindowViewModel>();
         TitleBar.ExtendsContentIntoTitleBar = true;
         TitleBar.Height = 48;
+        SplashScreen = new ZincSplashScreen();
     }
 }
