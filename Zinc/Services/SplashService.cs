@@ -1,4 +1,6 @@
-﻿using Avalonia.Media;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using FluentAvalonia.UI.Windowing;
@@ -15,5 +17,6 @@ public class ZincSplashScreen : IFAApplicationSplashScreen
     public string? AppName => null;
     public object? SplashScreenContent => null;
     public int MinimumShowTime => 1000;
+
     public Task RunTasks(CancellationToken cancellationToken) => Task.CompletedTask;
 }
