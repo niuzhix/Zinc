@@ -16,11 +16,38 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Text="外观" Theme="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,8"/>
+        <TextBlock Grid.Row="0" Text="编辑器" Theme="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,8"/>
         <ScrollViewer Margin="0,8" Grid.Row="1">
             <StackPanel Classes="settings-container animated-intro" Spacing="4">
-                <controls1:IconText Glyph="&#xE51E;" Text="主题" Margin="0,0,0,8"/>
-                
+                <controls1:IconText Glyph="&#xE51E;" Text="外观" Margin="0,0,0,8"/>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF2D6;}"
+                                             Header="显示代码行号"
+                                             Description="控制代码编辑器中左侧行号的显示。">
+                    <controls:FASettingsExpander.Footer>
+                        <ToggleSwitch IsChecked="{Binding Settings.ShowLineNumbers}"/>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xE5C9;}"
+                                             Header="剪切整行"
+                                             Description="控制代码编辑器中未选择文本时按下 Ctrl+C 或 Ctrl+X 时的行为。">
+                    <controls:FASettingsExpander.Footer>
+                        <ToggleSwitch IsChecked="{Binding Settings.CutCopyWholeLine}"/>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xE989;}"
+                                             Header="高亮当前行"
+                                             Description="控制代码编辑器中是否突出显示光标行。">
+                    <controls:FASettingsExpander.Footer>
+                        <ToggleSwitch IsChecked="{Binding Settings.HighlightCurrentLine}"/>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF31B;}"
+                                             Header="自动分词"
+                                             Description="控制代码编辑器中行长度超出屏幕长度时的行为。">
+                    <controls:FASettingsExpander.Footer>
+                        <ToggleSwitch IsChecked="{Binding Settings.WordWrap}"/>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
             </StackPanel>
         </ScrollViewer>
     </Grid>

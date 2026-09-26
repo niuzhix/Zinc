@@ -19,7 +19,7 @@
         <controls:FANavigationView.MenuItems>
             <controls:FANavigationViewItem Content="外观" Tag="UI" IconSource="{controls1:FluentIconSource &#xE51E;}"/>
             <controls:FANavigationViewItem Content="编译" Tag="Compile" IconSource="{controls1:FluentIconSource &#xE423;}"/>
-            <controls:FANavigationViewItem Content="编译" Tag="Edit" IconSource="{controls1:FluentIconSource &#xE423;}"/>
+            <controls:FANavigationViewItem Content="编辑器" Tag="Edit" IconSource="{controls1:FluentIconSource &#xE50C;}"/>
         </controls:FANavigationView.MenuItems>
         <controls:FANavigationView.FooterMenuItems>
             <controls:FANavigationViewItem Content="关于 Zinc" Tag="About" IconSource="{controls1:FluentIconSource &#xE9E4;}"/>
