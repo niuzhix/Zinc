@@ -31,6 +31,9 @@
 		<Style Selector=":is(TopLevel)">
             <Setter Property="FontFamily" Value="{StaticResource HarmonyOsSans}" />
         </Style>
+		<Style Selector=":is(ScrollViewer)">
+            <Setter Property="MaxWidth" Value="1200"/>
+        </Style>
 		<Style Selector=":is(ToggleSwitch)">
 			<Setter Property="OnContent" Value="开"/>
 			<Setter Property="OffContent" Value="关"/>

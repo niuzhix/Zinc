@@ -35,12 +35,14 @@
                 </controls:FASettingsExpander>
                 <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xEC50;}"
                                              Header="主题色"
-                                             Description="主界面强调颜色，禁用时使用系统强调色。">
+                                             Description="主界面强调颜色，禁用时使用系统强调色。"
+                                             IsEnabled="False"
+                                             ToolTip.Tip="该选项暂时不可用。">
                     <controls:FASettingsExpander.Footer>
                         <StackPanel Orientation="Horizontal">
                             <ColorPicker VerticalAlignment="Center"
                                          Margin="0,0,6,0"
-                                         Color="{Binding Settings.ThemeColor, Mode=TwoWay}"
+                                         Color="{Binding Settings.ThemeColor}"
                                          IsVisible="{Binding Settings.IsCustomThemeColorEnabled}"/>
                             <ToggleSwitch VerticalAlignment="Center"
                                           IsChecked="{Binding Settings.IsCustomThemeColorEnabled}"/>
