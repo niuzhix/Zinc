@@ -1,4 +1,5 @@
-﻿using AvaloniaEdit;
+﻿using Avalonia.Input;
+using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
