@@ -83,6 +83,7 @@ public class AppSettings : ObservableObjects
     private FontFamily _editorFont = new("avares://Zinc/Assets/Fonts/#FiraCode Nerd Font Propo");
     private FontWeight _editorFontWeight = FontWeight.Medium;
     private double _editorFontSize = 16;
+    private string _compilerPath = string.Empty;
     private bool _enableO2 = true;
     private bool _enableGDB = true;
     private CppStandard _standardVersion = CppStandard.Cpp11;
@@ -133,6 +134,12 @@ public class AppSettings : ObservableObjects
     {
         get => _editorFontSize;
         set => SetProperty(ref _editorFontSize, value);
+    }
+
+    public string CompilerPath
+    {
+        get => _compilerPath;
+        set => SetProperty(ref _compilerPath, value);
     }
 
     public bool EnableO2

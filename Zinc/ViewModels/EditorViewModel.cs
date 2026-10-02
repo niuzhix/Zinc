@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Zinc.Abstractions;
@@ -81,21 +82,21 @@ public partial class EditorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task SaveAsync()
+    public async Task<bool> SaveAsync()
     {
         if (string.IsNullOrEmpty(filepath))
         {
             var selectedpath = await _dialogService.SaveFilePathAsync("选择保存文件位置", "未标题", ".cpp", _filters);
             if (string.IsNullOrEmpty(selectedpath))
             {
-                return;
+                return false;
             }
             filepath = selectedpath;
         }
 
         _fileService.SaveFile(filepath, Content.Text);
         Filename = filepath?.Split("\\").Last();
-
+        return true;
     }
 
     [RelayCommand]
@@ -108,13 +109,16 @@ public partial class EditorViewModel : ObservableObject
         }
 
         _fileService.SaveFile(selectedpath, Content.Text);
-
     }
 
     [RelayCommand]
     private async Task CompileAsync()
     {
-        await SaveAsync();
+        if(!await SaveAsync())
+        {
+            CompileLog += $"[{DateTime.Now:T}] [编译取消]\n";
+            return;
+        }
         var compilers = _programService.FindAllCompilers();
         foreach (var compiler in compilers)
         {
@@ -125,6 +129,7 @@ public partial class EditorViewModel : ObservableObject
         var options = new CompileOptions
         {
             CodePath = filepath,
+            CompilerPath = Settings.CompilerPath,
             enableO2 = Settings.EnableO2,
             enableGDB = Settings.EnableGDB,
             StandardVersion = Settings.StandardVersion,
@@ -151,9 +156,14 @@ public partial class EditorViewModel : ObservableObject
             CompileLog += $"[{DateTime.Now:T}] [样例为空，无需运行] {Filename}\n";
             return;
         }
+
+        string executablePath = OperatingSystem.IsWindows()
+            ? Path.ChangeExtension(filepath, ".exe")
+            : Path.ChangeExtension(filepath, null);
+
         var options = new ExecutionOptions
         {
-            ExecutablePath = $"{filepath.Split(".")[0]}.exe",
+            ExecutablePath = executablePath,
             StandardInput = Input,
             ExpectedOutput = Answer,
             TimeLimitMs = 2000,

@@ -1,5 +1,9 @@
 ﻿using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
 
@@ -7,6 +11,9 @@ namespace Zinc.Core.Services;
 
 public class ProgramService : IProgramService
 {
+    private const int CompilerVersionTimeoutMs = 2000;
+    private const int CompileTimeoutMs = 30_000;
+
     public async Task<CompileResult> CompileAsync(CompileOptions options)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -15,37 +22,59 @@ public class ProgramService : IProgramService
         try
         {
             var compilers = FindAllCompilers();
-            if (compilers.Count == 0)
+
+            CompilerInfo? compiler = null;
+
+            if (!string.IsNullOrWhiteSpace(options.CompilerPath) && File.Exists(options.CompilerPath))
             {
-                result.IsSuccess = false;
-                result.ErrorType = CompileErrorType.CompilerNotFound;
-                result.ErrorMessage = "未找到 C++ 编译器";
-                result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-                return result;
+                compiler = compilers.FirstOrDefault(c =>
+                    c.Path.Equals(options.CompilerPath, StringComparison.OrdinalIgnoreCase));
+
+                if (compiler == null)
+                {
+                    compiler = new CompilerInfo
+                    {
+                        Path = options.CompilerPath,
+                        Version = GetCompilerVersion(options.CompilerPath),
+                        IsDefault = true
+                    };
+                }
             }
 
-            string compilerPath = compilers.FirstOrDefault(c => c.IsDefault)?.Path ?? compilers[0].Path;
-            result.CompilerPath = compilerPath;
+            if (compiler == null)
+            {
+                if (compilers.Count == 0)
+                {
+                    result.IsSuccess = false;
+                    result.ErrorType = CompileErrorType.CompilerNotFound;
+                    result.ErrorMessage = "未找到 C++ 编译器";
+                    result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+                    return result;
+                }
+
+                compiler = compilers.FirstOrDefault(c => c.IsDefault) ?? compilers[0];
+            }
+
+            result.CompilerPath = compiler.Path;
 
             if (string.IsNullOrWhiteSpace(options.CodePath) || !File.Exists(options.CodePath))
             {
                 result.IsSuccess = false;
                 result.ErrorType = CompileErrorType.SourceFileNotFound;
-                result.ErrorMessage = $"源文件不存在";
+                result.ErrorMessage = "源文件不存在";
                 result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
                 return result;
             }
 
             string outputPath = GetOutputPath(options.CodePath);
-            string arguments = BuildCompileArguments(options, outputPath);
-            result.FullCommand = $"\"{compilerPath}\" {arguments}";
+            var arguments = BuildCompileArguments(options, outputPath);
+            result.FullCommand = $"{compiler.Path} {string.Join(" ", arguments)}";
 
-            var process = new Process
+            using var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = compilerPath,
-                    Arguments = arguments,
+                    FileName = compiler.Path,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -54,23 +83,35 @@ public class ProgramService : IProgramService
                 }
             };
 
-            var tcs = new TaskCompletionSource<int>();
-            process.Exited += (sender, args) => tcs.TrySetResult(process.ExitCode);
-            process.EnableRaisingEvents = true;
+            foreach (var arg in arguments)
+            {
+                process.StartInfo.ArgumentList.Add(arg);
+            }
 
             process.Start();
 
             var outputTask = process.StandardOutput.ReadToEndAsync();
             var errorTask = process.StandardError.ReadToEndAsync();
 
-            int exitCode = await tcs.Task;
+            using var cts = new CancellationTokenSource(CompileTimeoutMs);
+            try
+            {
+                await process.WaitForExitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                process.Kill(entireProcessTree: true);
+                result.IsSuccess = false;
+                result.ErrorType = CompileErrorType.InternalError;
+                result.ErrorMessage = "编译超时";
+                result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
+                return result;
+            }
 
-            await Task.WhenAll(outputTask, errorTask);
-
-            result.ExitCode = exitCode;
+            result.ExitCode = process.ExitCode;
             result.Output = await outputTask;
             result.Error = await errorTask;
-            result.IsSuccess = exitCode == 0;
+            result.IsSuccess = process.ExitCode == 0;
 
             if (!result.IsSuccess)
             {
@@ -79,16 +120,14 @@ public class ProgramService : IProgramService
             }
 
             result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-
             LogCompileResult(result);
-
             return result;
         }
         catch (Exception ex)
         {
             result.IsSuccess = false;
             result.ErrorType = CompileErrorType.InternalError;
-            result.ErrorMessage = "内部错误";
+            result.ErrorMessage = ex.Message;
             result.Output = ex.StackTrace ?? string.Empty;
             result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
             return result;
@@ -100,84 +139,57 @@ public class ProgramService : IProgramService
         var compilers = new List<CompilerInfo>();
         var foundPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        try
+        var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+        var pathDirs = pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
+
+        var compilerNames = OperatingSystem.IsWindows()
+            ? new[] { "g++.exe", "clang++.exe" }
+            : new[] { "g++", "clang++" };
+
+        foreach (var dir in pathDirs)
         {
-            var process = new Process
+            foreach (var name in compilerNames)
             {
-                StartInfo = new ProcessStartInfo
+                var fullPath = Path.Combine(dir, name);
+                if (File.Exists(fullPath) && foundPaths.Add(fullPath))
                 {
-                    FileName = System.OperatingSystem.IsWindows() ? "where":"which",
-                    Arguments = "g++",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-
-            process.Start();
-            string output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit(3000);
-
-            if (!string.IsNullOrWhiteSpace(output))
-            {
-                var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var line in lines)
-                {
-                    string trimmed = line.Trim();
-
-                    if (trimmed.StartsWith("\"") && trimmed.EndsWith("\""))
-                        trimmed = trimmed.Substring(1, trimmed.Length - 2);
-
-                    if (!string.IsNullOrWhiteSpace(trimmed) && File.Exists(trimmed))
+                    compilers.Add(new CompilerInfo
                     {
-                        if (foundPaths.Add(trimmed))
-                        {
-                            compilers.Add(new CompilerInfo
-                            {
-                                Path = trimmed,
-                                Version = GetCompilerVersion(trimmed),
-                                IsDefault = compilers.Count == 0
-                            });
-                        }
-                    }
+                        Path = fullPath,
+                        Version = GetCompilerVersion(fullPath),
+                        IsDefault = compilers.Count == 0
+                    });
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Fail to find Compiler: {ex.Message}");
         }
 
         if (compilers.Count == 0)
         {
-            if (System.OperatingSystem.IsWindows())
+            string[] fallbackPaths;
+            if (OperatingSystem.IsWindows())
             {
-                var fallbackPaths = new[]
+                fallbackPaths = new[]
                 {
-                @"C:\mingw64\bin\g++.exe",
-                @"C:\MinGW\bin\g++.exe",
-                @"C:\Program Files\mingw-w64\bin\g++.exe",
-                @"C:\msys64\mingw64\bin\g++.exe",
-                @"C:\msys64\ucrt64\bin\g++.exe"
+                    @"C:\mingw64\bin\g++.exe",
+                    @"C:\MinGW\bin\g++.exe",
+                    @"C:\Program Files\mingw-w64\bin\g++.exe",
+                    @"C:\msys64\mingw64\bin\g++.exe",
+                    @"C:\msys64\ucrt64\bin\g++.exe"
                 };
-
-                foreach (var path in fallbackPaths)
-                {
-                    if (File.Exists(path) && foundPaths.Add(path))
-                    {
-                        compilers.Add(new CompilerInfo
-                        {
-                            Path = path,
-                            Version = GetCompilerVersion(path),
-                            IsDefault = compilers.Count == 0
-                        });
-                    }
-                }
             }
             else
             {
-                var path = @"/usr/local/g++";
+                fallbackPaths = new[]
+                {
+                    "/usr/bin/g++",
+                    "/usr/local/bin/g++",
+                    "/usr/bin/clang++",
+                    "/usr/local/bin/clang++"
+                };
+            }
+
+            foreach (var path in fallbackPaths)
+            {
                 if (File.Exists(path) && foundPaths.Add(path))
                 {
                     compilers.Add(new CompilerInfo
@@ -192,11 +204,12 @@ public class ProgramService : IProgramService
 
         return compilers;
     }
+
     private string GetCompilerVersion(string compilerPath)
     {
         try
         {
-            var process = new Process
+            using var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -211,55 +224,65 @@ public class ProgramService : IProgramService
 
             process.Start();
             string output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit(2000);
+            if (!process.WaitForExit(CompilerVersionTimeoutMs))
+            {
+                process.Kill();
+                return "Unknown Version";
+            }
 
             if (!string.IsNullOrWhiteSpace(output))
             {
-                var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                if (lines.Length > 0)
-                {
-                    return lines[0].Trim();
-                }
+                var firstLine = output
+                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                    .FirstOrDefault();
+                return firstLine?.Trim() ?? "Unknown Version";
             }
         }
-        catch { }
+        catch
+        {
+        }
         return "Unknown Version";
     }
 
-    private string BuildCompileArguments(CompileOptions options, string outputPath)
+    private List<string> BuildCompileArguments(CompileOptions options, string outputPath)
     {
-        var args = new StringBuilder();
-
-        args.Append($"\"{options.CodePath}\"");
-
-        args.Append($" -o \"{outputPath}\"");
-
-        string standard = GetStandardString(options.StandardVersion);
-        args.Append($" -std={standard}");
-
-        if (options.enableO2)
-            args.Append(" -O2");
-        else
-            args.Append(" -O0");
+        var args = new List<string>
+        {
+            options.CodePath,
+            "-o", outputPath,
+            $"-std={GetStandardString(options.StandardVersion)}",
+            options.enableO2 ? "-O2" : "-O0"
+        };
 
         if (options.enableGDB)
-            args.Append(" -g");
+            args.Add("-g");
 
         if (options.warningCheck)
-            args.Append(" -Wall -Wextra -Wshadow -Wconversion -Wpedantic");
+        {
+            args.Add("-Wall");
+            args.Add("-Wextra");
+            args.Add("-Wshadow");
+            args.Add("-Wconversion");
+            args.Add("-Wpedantic");
+        }
 
         if (options.overAddressCheck)
-            args.Append(" -fsanitize=undefined -fsanitize=address");
+        {
+            args.Add("-fsanitize=undefined");
+            args.Add("-fsanitize=address");
+        }
 
-        args.Append(" -pipe");
-        args.Append(" -fno-omit-frame-pointer");
+        args.Add("-pipe");
+        args.Add("-fno-omit-frame-pointer");
 
-        return args.ToString();
+        return args;
     }
 
     private string GetOutputPath(string codePath)
     {
-        return System.OperatingSystem.IsWindows() ? Path.ChangeExtension(codePath, ".exe") : Path.ChangeExtension(codePath, ".o");
+        return OperatingSystem.IsWindows()
+            ? Path.ChangeExtension(codePath, ".exe")
+            : Path.ChangeExtension(codePath, null);
     }
 
     private string GetStandardString(CppStandard standard)
@@ -277,10 +300,10 @@ public class ProgramService : IProgramService
             _ => "c++17"
         };
     }
+
     public string LogCompileResult(CompileResult result)
     {
         var log = new StringBuilder();
-
         log.Append($"[{DateTime.Now.ToLongTimeString()}] ");
 
         if (!string.IsNullOrWhiteSpace(result.Error))
@@ -294,7 +317,6 @@ public class ProgramService : IProgramService
         }
 
         log.Append($"耗时: {result.ElapsedMilliseconds}ms\n");
-
         return log.ToString();
     }
 }

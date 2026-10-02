@@ -7,6 +7,8 @@ public class CompileOptions
 {
     public string CodePath { get; set; } = string.Empty;
 
+    public string? CompilerPath { get; set; }
+
     public bool enableO2 { get; set; } = true;
 
     public bool enableGDB { get; set; } = true;
