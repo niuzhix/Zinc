@@ -65,72 +65,48 @@
                                              Header="自定义字体"
                                              Description="代码编辑器显示的字体。">
                     <controls:FASettingsExpander.Footer>
-                        <ComboBox x:Name="FontComboBox"
-                              ItemsSource="{Binding FontFamilies}"
-                              Foreground="{DynamicResource MaterialDesignBody}"
-                              MaxDropDownHeight="360"
-                              SelectedItem="{Binding Settings.EditorFont}"
-                              HorizontalAlignment="Left">
-                        <ComboBox.Styles>
-                            <Style Selector="ComboBoxItem">
-                                <Setter Property="MinHeight" Value="32"/>
-                                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                            </Style>
-                            <Style Selector="#FontComboBox /template/ Popup#PART_Popup">
-                                <Setter Property="Width" Value="280"/>
-                                <Setter Property="Placement" Value="BottomEdgeAlignedRight"/>
-                            </Style>
-                        </ComboBox.Styles>
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock FontFamily="{Binding}" FontWeight="Normal"
-                                           ToolTip.Tip="{Binding Name}"
-                                           MaxWidth="240"
-                                           Height="20"
-                                           TextWrapping="NoWrap"
-                                           TextTrimming="CharacterEllipsis"
-                                           VerticalAlignment="Center">
-                                    <TextBlock.Styles>
-                                        <Style Selector="TextBlock">
-                                            <Style Selector="^.DefaultFont">
-                                                <Setter Property="Text" Value="HarmonyOS Sans SC（默认）"/>
-                                            </Style>
-                                            <Setter Property="Text" Value="{Binding }" />
-                                        </Style>
-                                    </TextBlock.Styles>
-                                </TextBlock>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+                         <ComboBox x:Name="FontComboBox"
+                                  ItemsSource="{Binding FontFamilies}"
+                                  SelectedItem="{Binding SelectedFont}"
+                                  MaxDropDownHeight="360"
+                                  HorizontalAlignment="Left">
+                            <ComboBox.Styles>
+                                <Style Selector="ComboBoxItem">
+                                    <Setter Property="MinHeight" Value="32"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                </Style>
+                                <Style Selector="#FontComboBox /template/ Popup#PART_Popup">
+                                    <Setter Property="Width" Value="280"/>
+                                    <Setter Property="Placement" Value="BottomEdgeAlignedRight"/>
+                                </Style>
+                            </ComboBox.Styles>
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="FontFamily">
+                                    <TextBlock FontFamily="{Binding}"
+                                               FontWeight="Normal"
+                                               ToolTip.Tip="{Binding Name}"
+                                               MaxWidth="240"
+                                               Height="20"
+                                               TextWrapping="NoWrap"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"
+                                               Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>
                 <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF26F;}"
                                              Header="自定义字重"
                                              Description="代码编辑器显示的字体粗细，需要对应字体支持。">
                     <controls:FASettingsExpander.Footer>
-                        <ComboBox SelectedItem="{Binding Settings.EditorFontWeight}">
+                        <ComboBox ItemsSource="{Binding AvailableFontWeights}"
+                                  SelectedItem="{Binding SelectedFontWeight}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate x:DataType="FontWeight">
-                                    <TextBlock Text="{Binding}" FontWeight="{Binding}"
-                                               ToolTip.Tip="{Binding}" />
+                                    <TextBlock Text="{Binding}" FontWeight="{Binding}" />
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
-                            <x:Static Member="FontWeight.Thin" />
-                            <!--<x:Static Member="FontWeights.UltraLight"/>-->
-                            <x:Static Member="FontWeight.ExtraLight" />
-                            <x:Static Member="FontWeight.Light" />
-                            <x:Static Member="FontWeight.Normal" />
-                            <!--<x:Static Member="FontWeights.Regular"/>-->
-                            <x:Static Member="FontWeight.Medium" />
-                            <!--<x:Static Member="FontWeights.DemiBold"/>-->
-                            <x:Static Member="FontWeight.SemiBold" />
-                            <x:Static Member="FontWeight.Bold" />
-                            <x:Static Member="FontWeight.ExtraBold" />
-                            <!--<x:Static Member="FontWeights.UltraBold"/>-->
-                            <x:Static Member="FontWeight.Black" />
-                            <!--<x:Static Member="FontWeights.Heavy"/>-->
-                            <x:Static Member="FontWeight.ExtraBlack" />
-                            <!--<x:Static Member="FontWeights.UltraBlack"/>-->
                         </ComboBox>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>

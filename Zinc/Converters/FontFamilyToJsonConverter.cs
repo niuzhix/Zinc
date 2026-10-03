@@ -13,5 +13,16 @@ public class FontFamilyToJsonConverter : JsonConverter<FontFamily>
         => new FontFamily(reader.GetString() ?? "Segoe UI");
 
     public override void Write(Utf8JsonWriter writer, FontFamily value, JsonSerializerOptions options)
-        => writer.WriteStringValue(value.Name);
+    {
+        // 优先写入 Key（如果有），以保留完整 avares URI（包含文件名），否则退回到 Name
+        var key = value.Key?.ToString();
+        if (!string.IsNullOrEmpty(key))
+        {
+            writer.WriteStringValue(key.Replace("compositefont:", ""));
+        }
+        else
+        {
+            writer.WriteStringValue(value.Name);
+        }
+    }
 }

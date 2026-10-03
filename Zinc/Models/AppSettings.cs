@@ -80,7 +80,8 @@ public class AppSettings : ObservableObjects
     private bool _isCustomThemeColorEnabled = false;
     private Color _themeColor;
     private double _opacity = 1;
-    private FontFamily _editorFont = new("avares://Zinc/Assets/Fonts/#FiraCode Nerd Font Propo");
+    // 指定为包含具体字体文件名的 avares URI，确保 Avalonia 能定位到 ttf 文件并创建 GlyphTypeface
+    private FontFamily _editorFont = new("avares://Zinc/Assets/Fonts/FiraCodeNerdFontPropo-Medium.ttf#FiraCode Nerd Font Propo Med");
     private FontWeight _editorFontWeight = FontWeight.Medium;
     private double _editorFontSize = 16;
     private string _compilerPath = string.Empty;
