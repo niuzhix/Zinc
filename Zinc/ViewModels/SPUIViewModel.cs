@@ -15,7 +15,7 @@ public partial class SPUIViewModel : ObservableObject
     private readonly ISettingsService<AppSettings> _settingsService;
 
     private static readonly FontFamily FallbackFont =
-        new("avares://Zinc/Assets/Fonts#FiraCode Nerd Font Propo Med");
+        new("avares://Zinc/Assets/Fonts#FiraCode.ttf#Fira Code");
 
     private static readonly FontFamily SystemFallback =
         new("Consolas");
@@ -23,8 +23,6 @@ public partial class SPUIViewModel : ObservableObject
     public SPUIViewModel(ISettingsService<AppSettings> settingsService)
     {
         _settingsService = settingsService;
-
-        FontFamilies.Add(FallbackFont);
 
         foreach (var f in FontManager.Current.SystemFonts.OrderBy(x => x.Name))
             FontFamilies.Add(f);
