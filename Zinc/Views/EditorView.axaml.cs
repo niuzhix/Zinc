@@ -32,6 +32,7 @@ public partial class EditorView : UserControl
     {
         if (string.IsNullOrEmpty(e.Text)) return;
         var textArea = CodeEditor.TextArea;
+        var doc = textArea.Document;
         int offset = textArea.Caret.Offset;
 
         var pairs = new Dictionary<char, char>
@@ -43,6 +44,7 @@ public partial class EditorView : UserControl
             ')', ']', '}', '"', '\''
         };
 
+        // 括号匹配
         char input = e.Text[0];
         if (pairs.TryGetValue(input, out char closing))
         {
@@ -59,6 +61,23 @@ public partial class EditorView : UserControl
             textArea.Caret.Offset++;
             e.Handled = true;
             return;
+        }
+
+        //自动缩进
+        if(offset > 0)
+        {
+            char prev = doc.GetCharAt(offset - 1);
+
+            if(prev == '{')
+            {
+                string indent = textArea.Options.IndentationString;
+                string newLine = Environment.NewLine;
+
+                e.Handled = true;
+
+                doc.Insert(offset, newLine + indent + newLine);
+                textArea.Caret.Offset = offset + newLine.Length + indent.Length;
+            }
         }
     }
 }
