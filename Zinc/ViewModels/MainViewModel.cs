@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Zinc.Abstractions;
 using Zinc.Core.Abstractions;
-using Zinc.Core.Models;
 using Zinc.Models;
 using Zinc.Views;
 

@@ -22,6 +22,7 @@ public partial class EditorViewModel : ObservableObject
     private readonly IFileService _fileService;
     private readonly IProgramService _programService;
     private readonly IJudgeService _judgeService;
+    private readonly IFormatService _formatService;
 
     [ObservableProperty]
     private TextDocument content;
@@ -61,13 +62,14 @@ public partial class EditorViewModel : ObservableObject
         new(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
     ];
 
-    public EditorViewModel(ISettingsService<AppSettings> settingsService, IDialogService dialogService, IFileService fileService, IProgramService programService, IJudgeService judgeService, string? _content = null, string? _path = null)
+    public EditorViewModel(ISettingsService<AppSettings> settingsService, IDialogService dialogService, IFileService fileService, IProgramService programService, IJudgeService judgeService, IFormatService formatService, string? _content = null, string? _path = null)
     {
         _settingsService = settingsService;
         _dialogService = dialogService;
         _fileService = fileService;
         _programService = programService;
         _judgeService = judgeService;
+        _formatService = formatService;
 
         Content = new TextDocument();
         if (!string.IsNullOrEmpty(_content))
@@ -202,6 +204,31 @@ public partial class EditorViewModel : ObservableObject
         await CompileAsync();
         await JudgeAsync();
     }
+
+    [RelayCommand]
+    private async Task FormatDocumentAsync()
+    {
+        var result = await _formatService.FormatAsync(Content.Text);
+        if (!result.Success) {CompileLog += result.Error; return; }
+
+        using (Content.RunUpdate())
+            Content.Text = result.Text;
+    }
+
+    //[RelayCommand]
+    //private async Task FormatSelectionAsync()
+    //{
+    //    int start = _editor.SelectionStart;
+    //    int length = _editor.SelectionLength;
+
+    //    if (length == 0) { await FormatDocumentAsync(); return; }
+
+    //    var selected = Content.GetText(start, length);
+    //    var result = await _format.FormatAsync(selected);
+    //    if (!result.Success) return;
+
+    //    Content.Replace(start, length, result.Text);
+    //}
 
     public AppSettings Settings => _settingsService.Current;
     public void SaveSettings() => _settingsService.Save();

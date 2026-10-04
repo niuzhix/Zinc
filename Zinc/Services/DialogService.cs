@@ -1,10 +1,13 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using System.Xml.Linq;
-using Zinc.Core.Abstractions;
-using Zinc.Core.Models;
+using Zinc.Abstractions;
+using Zinc.Models;
 using static System.Net.WebRequestMethods;
 
 namespace Zinc.Core.Services;

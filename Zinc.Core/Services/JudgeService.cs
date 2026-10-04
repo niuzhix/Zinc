@@ -106,7 +106,7 @@ public class JudgeService : IJudgeService
             result.Result = JudgeResult.TLE;
             return result;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             result.Result = JudgeResult.RE;
             return result;

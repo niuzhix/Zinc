@@ -54,6 +54,7 @@
 					<Button Command="{Binding CompileAndJudgeCommand}">
 						<controls1:IconText Glyph="&#xEDB9;" Text="编译并运行"/>
 					</Button>
+					<Button Command="{Binding FormatDocumentCommand}"/>
 				</StackPanel>
 				<TextBox Grid.Row="1"  
 						 HorizontalAlignment="Stretch"

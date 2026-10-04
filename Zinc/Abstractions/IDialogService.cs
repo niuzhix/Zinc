@@ -1,6 +1,8 @@
-﻿using Zinc.Core.Models;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Zinc.Models;
 
-namespace Zinc.Core.Abstractions;
+namespace Zinc.Abstractions;
 
 public interface IDialogService
 {

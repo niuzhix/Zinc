@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Zinc.Core.Models;
+namespace Zinc.Models;
 
 public class FileFilter
 {
