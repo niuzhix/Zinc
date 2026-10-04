@@ -48,6 +48,15 @@
                         <ToggleSwitch IsChecked="{Binding Settings.WordWrap}"/>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>
+                <Separator Margin="0 12 0 4" />
+                <controls1:IconText Glyph="&#xE1B5;" Text="格式化" Margin="0,0,0,8"/>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF31B;}"
+                                             Header="自动分词"
+                                             Description="控制代码编辑器中行长度超出屏幕长度时的行为。">
+                    <controls:FASettingsExpander.Footer>
+                        <ToggleSwitch IsChecked="{Binding Settings.AutoFormatting}"/>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
             </StackPanel>
         </ScrollViewer>
     </Grid>

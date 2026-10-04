@@ -93,6 +93,7 @@ public class AppSettings : ObservableObjects
     private bool _highlightCurrentLine = true;
     private bool _wordWrap = false;
     private bool _cutCopyWholeLine = true;
+    private bool _autoFormatting = true;
 
     public int Theme
     {
@@ -194,5 +195,11 @@ public class AppSettings : ObservableObjects
     {
         get => _cutCopyWholeLine;
         set => SetProperty(ref _cutCopyWholeLine, value);
+    }
+
+    public bool AutoFormatting
+    {
+        get => _autoFormatting;
+        set => SetProperty(ref _autoFormatting, value);
     }
 }

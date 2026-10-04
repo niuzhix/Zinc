@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using TextMateSharp.Grammars;
 using Zinc.Models;
+using Zinc.Services;
+using Zinc.Abstractions;
 using Zinc.ViewModels;
 
 namespace Zinc.Views;
@@ -32,7 +34,6 @@ public partial class EditorView : UserControl
     {
         if (string.IsNullOrEmpty(e.Text)) return;
         var textArea = CodeEditor.TextArea;
-        var doc = textArea.Document;
         int offset = textArea.Caret.Offset;
 
         var pairs = new Dictionary<char, char>
@@ -66,7 +67,7 @@ public partial class EditorView : UserControl
         //自动缩进
         if(offset > 0)
         {
-            char prev = doc.GetCharAt(offset - 1);
+            char prev = textArea.Document.GetCharAt(offset - 1);
 
             if(prev == '{')
             {
@@ -75,8 +76,21 @@ public partial class EditorView : UserControl
 
                 e.Handled = true;
 
-                doc.Insert(offset, newLine + indent + newLine);
+                textArea.Document.Insert(offset, newLine + indent + newLine);
                 textArea.Caret.Offset = offset + newLine.Length + indent.Length;
+            }
+        }
+
+        //自动格式化
+        if (App.Services.GetService<ISettingsService<AppSettings>>().Current.AutoFormatting)
+        {
+            if(input == ';')
+            {
+                if (DataContext is EditorViewModel vm)
+                {
+                    textArea.Document.Insert(offset, ";");
+                    vm.FormatDocumentCommand.Execute(null);
+                }
             }
         }
     }
