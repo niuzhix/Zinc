@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,17 +34,10 @@ public partial class EditorViewModel : ObservableObject
     [ObservableProperty]
     private string? compileLog = string.Empty;
 
-    [ObservableProperty]
-    private string? input = string.Empty;
+    public ObservableCollection<TestCase> TestCases { get; } = new();
 
     [ObservableProperty]
-    private string? answer = string.Empty;
-
-    [ObservableProperty]
-    private string? output = string.Empty;
-
-    [ObservableProperty]
-    private JudgeResult? resultCode;
+    private TestCase? selectedTestCase;
 
     [ObservableProperty]
     private TextEditorOptions editorOptions = new()
@@ -81,6 +75,27 @@ public partial class EditorViewModel : ObservableObject
 
         editorOptions.HighlightCurrentLine = Settings.HighlightCurrentLine;
         editorOptions.CutCopyWholeLine = Settings.CutCopyWholeLine;
+    }
+
+    [RelayCommand]
+    private void AddTestCase()
+    {
+        var tc = new TestCase { Index = TestCases.Count + 1 };
+        TestCases.Add(tc);
+        SelectedTestCase = tc;
+    }
+
+    [RelayCommand]
+    private void RemoveTestCase()
+    {
+        if (SelectedTestCase == null) return;
+
+        TestCases.Remove(SelectedTestCase);
+        for (int i = 0; i < TestCases.Count; i++)
+        {
+            TestCases[i].Index = i + 1;
+        }
+        SelectedTestCase = TestCases.LastOrDefault();
     }
 
     [RelayCommand]
@@ -153,9 +168,10 @@ public partial class EditorViewModel : ObservableObject
         {
             return;
         }
-        if (string.IsNullOrEmpty(Input) || string.IsNullOrEmpty(Answer))
+
+        if (TestCases.Count == 0)
         {
-            CompileLog += $"[{DateTime.Now:T}] [样例为空，无需运行] {Filename}\n";
+            CompileLog += $"[{DateTime.Now:T}] [无测试点]\n";
             return;
         }
 
@@ -163,39 +179,53 @@ public partial class EditorViewModel : ObservableObject
             ? Path.ChangeExtension(filepath, ".exe")
             : Path.ChangeExtension(filepath, null);
 
-        var options = new ExecutionOptions
+        int passed = 0;
+
+        foreach (var tc in TestCases)
         {
-            ExecutablePath = executablePath,
-            StandardInput = Input,
-            ExpectedOutput = Answer,
-            TimeLimitMs = 2000,
-            MemoryLimitMB = 256
-        };
-
-        var result = await _judgeService.ExecuteAsync(options);
-
-        ResultCode = result.Result;
-        Output = result.StandardOutput;
-
-        Console.WriteLine($"状态: {result.Result}");
-        Console.WriteLine($"执行时间: {result.ExecutionTime.TotalMilliseconds:F2}ms");
-        Console.WriteLine($"内存使用: {result.MemoryUsedBytes / 1024.0 / 1024.0:F2}MB");
-        Console.WriteLine($"退出码: {result.ExitCode}");
-
-        if (result.Result == JudgeResult.WA && result.Differences.Count > 0)
-        {
-            Console.WriteLine("\n=== 差异详情 ===");
-            foreach (var diff in result.Differences)
+            if (string.IsNullOrEmpty(tc.Input) || string.IsNullOrEmpty(tc.ExpectedOutput))
             {
-                Console.WriteLine($"  {diff.Actual}");
+                tc.Result = null;
+                continue;
+            }
+
+            var options = new ExecutionOptions
+            {
+                ExecutablePath = executablePath,
+                StandardInput = tc.Input,
+                ExpectedOutput = tc.ExpectedOutput,
+                TimeLimitMs = 2000,
+                MemoryLimitMB = 256
+            };
+
+            var result = await _judgeService.ExecuteAsync(options);
+
+            tc.Result = result.Result;
+            tc.ActualOutput = result.StandardOutput;
+            tc.ErrorOutput = result.ErrorOutput;
+            tc.ExecutionTimeMs = result.ExecutionTime.TotalMilliseconds;
+
+            if (result.Result == JudgeResult.AC)
+                passed++;
+
+            Console.WriteLine($"[测试点 {tc.Index}] 状态: {result.Result}, " +
+                              $"耗时: {result.ExecutionTime.TotalMilliseconds:F2}ms");
+
+            if (result.Result == JudgeResult.WA && result.Differences.Count > 0)
+            {
+                foreach (var diff in result.Differences)
+                {
+                    Console.WriteLine($"  {diff.Actual}");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(result.ErrorOutput))
+            {
+                Console.WriteLine($"=== 错误输出 ===\n{result.ErrorOutput}");
             }
         }
 
-        if (!string.IsNullOrEmpty(result.ErrorOutput))
-        {
-            Console.WriteLine($"\n=== 错误输出 ===");
-            Console.WriteLine(result.ErrorOutput);
-        }
+        CompileLog += $"[{DateTime.Now:T}] [测试完成] 通过 {passed}/{TestCases.Count}\n";
     }
 
     [RelayCommand]

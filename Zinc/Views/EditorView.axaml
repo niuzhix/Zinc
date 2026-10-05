@@ -1,111 +1,152 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-			 xmlns:controls="using:FluentAvalonia.UI.Controls"
+             xmlns:controls="using:FluentAvalonia.UI.Controls"
              xmlns:controls1="using:Zinc.Controls"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:vm="using:Zinc.ViewModels"
-			 xmlns:convert="using:Zinc.Converters"
-			 xmlns:edit="https://github.com/avaloniaui/avaloniaedit"
-			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-			 x:Class="Zinc.Views.EditorView"
-			 x:DataType="vm:EditorViewModel">
-	<UserControl.Resources>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="using:Zinc.Models"
+             xmlns:vm="using:Zinc.ViewModels"
+             xmlns:convert="using:Zinc.Converters"
+             xmlns:edit="https://github.com/avaloniaui/avaloniaedit"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Zinc.Views.EditorView"
+             x:DataType="vm:EditorViewModel">
+    <UserControl.Resources>
         <convert:JudgeResultToBrushConverter x:Key="ResultToBrush"/>
     </UserControl.Resources>
 
-	<DockPanel>
-		<Grid DockPanel.Dock="Top">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="0.6*"/>
-				<ColumnDefinition Width="0.4*"/>
-			</Grid.ColumnDefinitions>
+    <DockPanel>
+        <Grid DockPanel.Dock="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.6*"/>
+                <ColumnDefinition Width="0.4*"/>
+            </Grid.ColumnDefinitions>
 
-			<edit:TextEditor x:Name="CodeEditor"
-							 Grid.Column="0"
-							 Document="{Binding Content,Mode=TwoWay}"
-							 HorizontalAlignment="Stretch"
-							 VerticalAlignment="Stretch"
-							 FontFamily="{Binding Settings.EditorFont}"
-							 FontWeight="{Binding Settings.EditorFontWeight}"
-							 FontSize="{Binding Settings.EditorFontSize}"
-							 ShowLineNumbers="{Binding Settings.ShowLineNumbers}"
-							 WordWrap="{Binding Settings.WordWrap}"
-							 Options="{Binding EditorOptions}"
-							 SyntaxHighlighting="C++"/>
-			<Grid Grid.Column="1"
-				  VerticalAlignment="Stretch"
-				  Margin="5"
-				  RowSpacing="8">
-				<Grid.RowDefinitions>
-					<RowDefinition Height="Auto"/>
-					<RowDefinition Height="0.35*"/>
-					<RowDefinition Height="0.65*"/>
-				</Grid.RowDefinitions>
-				<StackPanel Grid.Row="0"
-							Orientation="Horizontal"
-							Spacing="8">
-					<Button Command="{Binding CompileCommand}">
-						<controls1:IconText Glyph="&#xE423;" Text="编译"/>
-					</Button>
-					<Button Command="{Binding JudgeCommand}">
-						<controls1:IconText Glyph="&#xE130;" Text="运行样例"/>
-					</Button>
-					<Button Command="{Binding CompileAndJudgeCommand}">
-						<controls1:IconText Glyph="&#xEDB9;" Text="编译并运行"/>
-					</Button>
-					<Button Command="{Binding FormatDocumentCommand}"/>
-				</StackPanel>
-				<TextBox Grid.Row="1"  
-						 HorizontalAlignment="Stretch"
-						 AcceptsReturn="True" 
-						 TextWrapping="Wrap" 
-						 Text="{Binding CompileLog}" 
-						 IsReadOnly="True"/>
-				<Grid Grid.Row="2"
-					  HorizontalAlignment="Stretch"
-					  VerticalAlignment="Stretch"
-					  RowSpacing="8"
-					  ColumnSpacing="8">
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="*"/>
-					</Grid.RowDefinitions>
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="Auto"/>
-						<ColumnDefinition Width="*"/>
-					</Grid.ColumnDefinitions>
-					<TextBlock Grid.Column="0"
-							   Grid.Row="0"
-							   Text="输入"/>
-					<TextBox Grid.Column="0"
-							 Grid.Row="1"
-							 AcceptsReturn="True" 
-							 Text="{Binding Input}"/>
-					<TextBlock Grid.Column="1"
-							   Grid.Row="0"
-							   Text="实际输出"/>
-					<Button Grid.Column="2"
-							Grid.Row="0"
-							Background="{Binding ResultCode, Converter={StaticResource ResultToBrush}}"
-							Content="{Binding ResultCode}"
-							Padding="18,0"/>
-					<TextBox Grid.Column="1"
-							 Grid.Row="1"
-							 Grid.ColumnSpan="2"
-							 AcceptsReturn="True" 
-							 Text="{Binding Output}"/>
-					<TextBlock Grid.Column="4"
-							   Grid.Row="0"
-							   Text="预期输出"/>
-					<TextBox Grid.Column="4"
-							 Grid.Row="1"
-							 AcceptsReturn="True" 
-							 Text="{Binding Answer}"/>
-				</Grid>
-			</Grid>
-		</Grid>
-	</DockPanel>
+            <edit:TextEditor x:Name="CodeEditor"
+                             Grid.Column="0"
+                             Document="{Binding Content,Mode=TwoWay}"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="Stretch"
+                             FontFamily="{Binding Settings.EditorFont}"
+                             FontWeight="{Binding Settings.EditorFontWeight}"
+                             FontSize="{Binding Settings.EditorFontSize}"
+                             ShowLineNumbers="{Binding Settings.ShowLineNumbers}"
+                             WordWrap="{Binding Settings.WordWrap}"
+                             Options="{Binding EditorOptions}"
+                             SyntaxHighlighting="C++"/>
+            <Grid Grid.Column="1"
+                  VerticalAlignment="Stretch"
+                  Margin="5"
+                  RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="0.35*"/>
+                    <RowDefinition Height="0.65*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                    <Button Command="{Binding CompileCommand}">
+                        <controls1:IconText Glyph="&#xE423;" Text="编译"/>
+                    </Button>
+                    <Button Command="{Binding JudgeCommand}">
+                        <controls1:IconText Glyph="&#xE130;" Text="运行样例"/>
+                    </Button>
+                    <Button Command="{Binding CompileAndJudgeCommand}">
+                        <controls1:IconText Glyph="&#xEDB9;" Text="编译并运行"/>
+                    </Button>
+                    <Button Command="{Binding FormatDocumentCommand}"/>
+                </StackPanel>
+                <TextBox Grid.Row="1"
+                         HorizontalAlignment="Stretch"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         Text="{Binding CompileLog}"
+                         IsReadOnly="True"/>
+                <Grid Grid.Row="2" RowSpacing="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                        <Button Command="{Binding AddTestCaseCommand}">
+                            <controls1:IconText Glyph="&#xE00D;" Text="添加测试点"/>
+                        </Button>
+                        <Button Command="{Binding RemoveTestCaseCommand}">
+                            <controls1:IconText Glyph="&#xE61D;" Text="删除当前"/>
+                        </Button>
+                        <TextBlock VerticalAlignment="Center"
+                                   Text="{Binding TestCases.Count, StringFormat='共 {0} 个测试点'}"/>
+                    </StackPanel>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ListBox Grid.Column="0"
+                                 ItemsSource="{Binding TestCases}"
+                                 SelectedItem="{Binding SelectedTestCase}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="models:TestCase">
+                                    <Ellipse Width="10" Height="10"
+                                             VerticalAlignment="Center"
+                                             Fill="{Binding Result, Converter={StaticResource ResultToBrush}}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <ContentControl Grid.Column="1"
+                                        Margin="8,0,0,0"
+                                        Content="{Binding SelectedTestCase}">
+                            <ContentControl.ContentTemplate>
+                                <DataTemplate DataType="models:TestCase">
+                                    <Grid RowSpacing="8" ColumnSpacing="8">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0" Grid.Row="0" Text="输入"/>
+                                        <TextBox Grid.Column="0" Grid.Row="1"
+                                                 AcceptsReturn="True"
+                                                 Text="{Binding Input}"/>
+
+                                        <TextBlock Grid.Column="1" Grid.Row="0" Text="实际输出"/>
+                                        <TextBox Grid.Column="1" Grid.Row="1"
+                                                 AcceptsReturn="True"
+                                                 IsReadOnly="True"
+                                                 Text="{Binding ActualOutput}"/>
+
+                                        <TextBlock Grid.Column="2" Grid.Row="0" Text="预期输出"/>
+                                        <TextBox Grid.Column="2" Grid.Row="1"
+                                                 AcceptsReturn="True"
+                                                 Text="{Binding ExpectedOutput}"/>
+
+                                        <StackPanel Grid.Row="2" Grid.ColumnSpan="3"
+                                                    Orientation="Horizontal" Spacing="12">
+                                            <Border Background="{Binding Result, Converter={StaticResource ResultToBrush}}"
+                                                    CornerRadius="4" Padding="10,2">
+                                                <TextBlock Text="{Binding Result}" Foreground="White"/>
+                                            </Border>
+                                            <TextBlock VerticalAlignment="Center"
+                                                       Text="{Binding ExecutionTimeMs, StringFormat='耗时 {0:F2}ms'}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ContentControl.ContentTemplate>
+                        </ContentControl>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+    </DockPanel>
 </UserControl>
