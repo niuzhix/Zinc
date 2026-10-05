@@ -1,5 +1,4 @@
-﻿using Avalonia.Input;
-using AvaloniaEdit;
+﻿using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -25,22 +24,36 @@ public partial class EditorViewModel : ObservableObject
     private readonly IJudgeService _judgeService;
     private readonly IFormatService _formatService;
 
-    [ObservableProperty]
-    private TextDocument content;
+    private readonly IReadOnlyList<FileFilter> _filters =
+    [
+        new() { Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
+    ];
+
+    private const int DefaultTimeLimitMs = 2000;
+    private const int DefaultMemoryLimitMB = 256;
+
+    // ====== 可绑定状态 ======
 
     [ObservableProperty]
-    private string? filename = string.Empty;
+    private TextDocument _content;
 
     [ObservableProperty]
-    private string? compileLog = string.Empty;
-
-    public ObservableCollection<TestCase> TestCases { get; } = new();
+    private string? _fileName = string.Empty;
 
     [ObservableProperty]
-    private TestCase? selectedTestCase;
+    private string? _filePath = string.Empty;
 
     [ObservableProperty]
-    private TextEditorOptions editorOptions = new()
+    private string? _log = string.Empty;
+
+    [ObservableProperty]
+    private bool _isDirty;
+
+    [ObservableProperty]
+    private TestCase? _selectedTestCase;
+
+    [ObservableProperty]
+    private TextEditorOptions _editorOptions = new()
     {
         ShowTabs = true,
         ShowSpaces = true,
@@ -50,13 +63,29 @@ public partial class EditorViewModel : ObservableObject
         CutCopyWholeLine = true,
     };
 
-    private string? filepath = string.Empty;
-    private readonly IReadOnlyList<FileFilter> _filters =
-    [
-        new(){ Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
-    ];
+    public ObservableCollection<TestCase> TestCases { get; } = new();
 
-    public EditorViewModel(ISettingsService<AppSettings> settingsService, IDialogService dialogService, IFileService fileService, IProgramService programService, IJudgeService judgeService, IFormatService formatService, string? _content = null, string? _path = null)
+    public AppSettings Settings => _settingsService.Current;
+
+    /// <summary>FATabView 显示用标题</summary>
+    public string Header => IsDirty
+        ? $"{DisplayName} *"
+        : DisplayName;
+
+    private string DisplayName =>
+        string.IsNullOrEmpty(FileName) ? "未标题" : FileName;
+
+    // ====== 构造 ======
+
+    public EditorViewModel(
+        ISettingsService<AppSettings> settingsService,
+        IDialogService dialogService,
+        IFileService fileService,
+        IProgramService programService,
+        IJudgeService judgeService,
+        IFormatService formatService,
+        string? content = null,
+        string? path = null)
     {
         _settingsService = settingsService;
         _dialogService = dialogService;
@@ -65,17 +94,26 @@ public partial class EditorViewModel : ObservableObject
         _judgeService = judgeService;
         _formatService = formatService;
 
-        Content = new TextDocument();
-        if (!string.IsNullOrEmpty(_content))
+        _content = new TextDocument();
+        if (!string.IsNullOrEmpty(content))
         {
-            Content.Insert(0, _content);
+            _content.Insert(0, content);
         }
-        filepath = _path;
-        Filename = _path?.Split("\\").Last();
+        _content.TextChanged += (_, _) => IsDirty = true;
 
-        editorOptions.HighlightCurrentLine = Settings.HighlightCurrentLine;
-        editorOptions.CutCopyWholeLine = Settings.CutCopyWholeLine;
+        FilePath = path;
+        FileName = string.IsNullOrEmpty(path) ? string.Empty : Path.GetFileName(path);
+
+        EditorOptions.HighlightCurrentLine = Settings.HighlightCurrentLine;
+        EditorOptions.CutCopyWholeLine = Settings.CutCopyWholeLine;
     }
+
+    partial void OnFileNameChanged(string? value)
+        => OnPropertyChanged(nameof(Header));
+
+    partial void OnIsDirtyChanged(bool value)
+        => OnPropertyChanged(nameof(Header));
+
 
     [RelayCommand]
     private void AddTestCase()
@@ -88,7 +126,7 @@ public partial class EditorViewModel : ObservableObject
     [RelayCommand]
     private void RemoveTestCase()
     {
-        if (SelectedTestCase == null) return;
+        if (SelectedTestCase is null) return;
 
         TestCases.Remove(SelectedTestCase);
         for (int i = 0; i < TestCases.Count; i++)
@@ -101,51 +139,58 @@ public partial class EditorViewModel : ObservableObject
     [RelayCommand]
     public async Task<bool> SaveAsync()
     {
-        if (string.IsNullOrEmpty(filepath))
+        if (string.IsNullOrEmpty(FilePath))
         {
-            var selectedpath = await _dialogService.SaveFilePathAsync("选择保存文件位置", "未标题", ".cpp", _filters);
-            if (string.IsNullOrEmpty(selectedpath))
-            {
+            var selectedPath = await _dialogService.SaveFilePathAsync(
+                "选择保存文件位置", "未标题", ".cpp", _filters);
+
+            if (string.IsNullOrEmpty(selectedPath))
                 return false;
-            }
-            filepath = selectedpath;
+
+            FilePath = selectedPath;
+            FileName = Path.GetFileName(selectedPath);
         }
 
-        _fileService.SaveFile(filepath, Content.Text);
-        Filename = filepath?.Split("\\").Last();
+        _fileService.SaveFile(FilePath, Content.Text);
+        IsDirty = false;
         return true;
     }
 
     [RelayCommand]
     public async Task SaveAsAsync()
     {
-        var selectedpath = await _dialogService.SaveFilePathAsync("选择保存文件位置", "未标题", ".cpp", _filters);
-        if (string.IsNullOrEmpty(selectedpath))
-        {
-            return;
-        }
+        var selectedPath = await _dialogService.SaveFilePathAsync(
+            "选择保存文件位置", FileName ?? "未标题", ".cpp", _filters);
 
-        _fileService.SaveFile(selectedpath, Content.Text);
+        if (string.IsNullOrEmpty(selectedPath))
+            return;
+
+        FilePath = selectedPath;
+        FileName = Path.GetFileName(selectedPath);
+
+        _fileService.SaveFile(selectedPath, Content.Text);
+        IsDirty = false;
     }
 
     [RelayCommand]
     private async Task CompileAsync()
     {
-        if(!await SaveAsync())
+        if (!await SaveAsync())
         {
-            CompileLog += $"[{DateTime.Now:T}] [编译取消]\n";
+            AppendLog("编译取消");
             return;
         }
-        var compilers = _programService.FindAllCompilers();
-        foreach (var compiler in compilers)
+
+        foreach (var compiler in _programService.FindAllCompilers())
         {
-            Console.WriteLine($"[{(compiler.IsDefault ? "默认" : "    ")}] {compiler.Path}");
+            var tag = compiler.IsDefault ? "默认" : "    ";
+            Console.WriteLine($"[{tag}] {compiler.Path}");
             Console.WriteLine($"    版本: {compiler.Version}");
         }
 
         var options = new CompileOptions
         {
-            CodePath = filepath,
+            CodePath = FilePath,
             CompilerPath = Settings.CompilerPath,
             enableO2 = Settings.EnableO2,
             enableGDB = Settings.EnableGDB,
@@ -154,30 +199,28 @@ public partial class EditorViewModel : ObservableObject
             overAddressCheck = Settings.OverAddressCheck
         };
 
-        CompileLog += $"[{DateTime.Now:T}] [开始编译] {Filename}\n";
+        AppendLog($"开始编译 {FileName}");
 
-        CompileResult result = await _programService.CompileAsync(options);
+        var result = await _programService.CompileAsync(options);
 
-        CompileLog += _programService.LogCompileResult(result);
+        Log += _programService.LogCompileResult(result);
     }
 
     [RelayCommand]
     private async Task JudgeAsync()
     {
-        if (string.IsNullOrEmpty(filepath))
-        {
+        if (string.IsNullOrEmpty(FilePath))
             return;
-        }
 
         if (TestCases.Count == 0)
         {
-            CompileLog += $"[{DateTime.Now:T}] [无测试点]\n";
+            AppendLog("无测试点");
             return;
         }
 
-        string executablePath = OperatingSystem.IsWindows()
-            ? Path.ChangeExtension(filepath, ".exe")
-            : Path.ChangeExtension(filepath, null);
+        var executablePath = OperatingSystem.IsWindows()
+            ? Path.ChangeExtension(FilePath, ".exe")
+            : Path.ChangeExtension(FilePath, null);
 
         int passed = 0;
 
@@ -194,8 +237,8 @@ public partial class EditorViewModel : ObservableObject
                 ExecutablePath = executablePath,
                 StandardInput = tc.Input,
                 ExpectedOutput = tc.ExpectedOutput,
-                TimeLimitMs = 2000,
-                MemoryLimitMB = 256
+                TimeLimitMs = DefaultTimeLimitMs,
+                MemoryLimitMB = DefaultMemoryLimitMB
             };
 
             var result = await _judgeService.ExecuteAsync(options);
@@ -208,24 +251,10 @@ public partial class EditorViewModel : ObservableObject
             if (result.Result == JudgeResult.AC)
                 passed++;
 
-            Console.WriteLine($"[测试点 {tc.Index}] 状态: {result.Result}, " +
-                              $"耗时: {result.ExecutionTime.TotalMilliseconds:F2}ms");
-
-            if (result.Result == JudgeResult.WA && result.Differences.Count > 0)
-            {
-                foreach (var diff in result.Differences)
-                {
-                    Console.WriteLine($"  {diff.Actual}");
-                }
-            }
-
-            if (!string.IsNullOrEmpty(result.ErrorOutput))
-            {
-                Console.WriteLine($"=== 错误输出 ===\n{result.ErrorOutput}");
-            }
+            LogTestResult(tc, result);
         }
 
-        CompileLog += $"[{DateTime.Now:T}] [测试完成] 通过 {passed}/{TestCases.Count}\n";
+        AppendLog($"测试完成 通过 {passed}/{TestCases.Count}");
     }
 
     [RelayCommand]
@@ -239,27 +268,39 @@ public partial class EditorViewModel : ObservableObject
     private async Task FormatDocumentAsync()
     {
         var result = await _formatService.FormatAsync(Content.Text);
-        if (!result.Success) {CompileLog += result.Error; return; }
+        if (!result.Success)
+        {
+            Log += result.Error;
+            return;
+        }
 
         using (Content.RunUpdate())
+        {
             Content.Text = result.Text;
+        }
+
+        IsDirty = true;
     }
 
-    //[RelayCommand]
-    //private async Task FormatSelectionAsync()
-    //{
-    //    int start = _editor.SelectionStart;
-    //    int length = _editor.SelectionLength;
+    private void AppendLog(string message)
+        => Log += $"[{DateTime.Now:T}] [{message}]\n";
 
-    //    if (length == 0) { await FormatDocumentAsync(); return; }
+    private void LogTestResult(TestCase tc, ExecutionResult result)
+    {
+        Console.WriteLine($"[测试点 {tc.Index}] 状态: {result.Result}, " +
+                          $"耗时: {result.ExecutionTime.TotalMilliseconds:F2}ms");
 
-    //    var selected = Content.GetText(start, length);
-    //    var result = await _format.FormatAsync(selected);
-    //    if (!result.Success) return;
+        if (result.Result == JudgeResult.WA && result.Differences.Count > 0)
+        {
+            foreach (var diff in result.Differences)
+            {
+                Console.WriteLine($"  {diff.Actual}");
+            }
+        }
 
-    //    Content.Replace(start, length, result.Text);
-    //}
-
-    public AppSettings Settings => _settingsService.Current;
-    public void SaveSettings() => _settingsService.Save();
+        if (!string.IsNullOrEmpty(result.ErrorOutput))
+        {
+            Console.WriteLine($"=== 错误输出 ===\n{result.ErrorOutput}");
+        }
+    }
 }
