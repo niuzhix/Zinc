@@ -4,6 +4,8 @@
 			 x:Class="Zinc.App"
 			 xmlns:local="using:Zinc"
 			 xmlns:sty="using:FluentAvalonia.Styling"
+             xmlns:views="using:Zinc.Views"
+             xmlns:vm="using:Zinc.ViewModels"
 			 xmlns:windowing="using:FluentAvalonia.UI.Windowing">
 
 

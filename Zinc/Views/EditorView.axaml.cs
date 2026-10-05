@@ -1,31 +1,26 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Threading;
 using AvaloniaEdit.TextMate;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using TextMateSharp.Grammars;
-using Zinc.Models;
-using Zinc.Services;
-using Zinc.Abstractions;
+using Zinc.Core.Models;
 using Zinc.ViewModels;
 
 namespace Zinc.Views;
 
 public partial class EditorView : UserControl
 {
-    public EditorView(string? content = null, string? path = null)
+    public EditorView()
     {
         InitializeComponent();
-        DataContext = ActivatorUtilities.CreateInstance<EditorViewModel>(
-            App.Services,
-            content ?? "",
-            path ?? ""
-        );
 
-        var _registryOptions = new RegistryOptions(ThemeName.DarkPlus);
-        var _textMateInstallation = CodeEditor.InstallTextMate(_registryOptions);
-        _textMateInstallation.SetGrammar(_registryOptions.GetScopeByLanguageId(_registryOptions.GetLanguageByExtension(".cpp").Id));
+        var registryOptions = new RegistryOptions(ThemeName.DarkPlus);
+        var textMateInstallation = CodeEditor.InstallTextMate(registryOptions);
+        textMateInstallation.SetGrammar(
+            registryOptions.GetScopeByLanguageId(
+                registryOptions.GetLanguageByExtension(".cpp").Id));
 
         CodeEditor.TextArea.TextEntering += OnTextEntering;
     }
@@ -33,65 +28,67 @@ public partial class EditorView : UserControl
     private void OnTextEntering(object? sender, TextInputEventArgs e)
     {
         if (string.IsNullOrEmpty(e.Text)) return;
+
         var textArea = CodeEditor.TextArea;
         int offset = textArea.Caret.Offset;
+        char input = e.Text[0];
 
         var pairs = new Dictionary<char, char>
         {
             { '(', ')' }, { '[', ']' }, { '{', '}' }, { '"', '"' }, { '\'', '\'' }
         };
-        var pairs_out = new List<char>
-        {
-            ')', ']', '}', '"', '\''
-        };
+        var closingChars = new HashSet<char> { ')', ']', '}', '"', '\'' };
 
-        // 括号匹配
-        char input = e.Text[0];
+        // 括号配对：输入左括号时自动补右括号
         if (pairs.TryGetValue(input, out char closing))
         {
-            if (offset < textArea.Document.TextLength && textArea.Document.GetCharAt(offset) == closing)
+            if (offset < textArea.Document.TextLength
+                && textArea.Document.GetCharAt(offset) == closing)
             {
+                // 后面已有右括号，跳过
                 textArea.Caret.Offset = offset + 1;
                 e.Handled = true;
                 return;
             }
+
             textArea.Document.Insert(offset, closing.ToString());
             textArea.Caret.Offset = offset;
+            return; // 让输入正常写入
         }
-        else if (pairs_out.Contains(input)){
-            textArea.Caret.Offset++;
+
+        // 输入右括号：后面已经有相同的就跳过
+        if (closingChars.Contains(input)
+            && offset < textArea.Document.TextLength
+            && textArea.Document.GetCharAt(offset) == input)
+        {
+            textArea.Caret.Offset = offset + 1;
             e.Handled = true;
             return;
         }
 
-        //自动缩进
-        if(offset > 0)
+        // 自动缩进：输入 { 后换行
+        if (offset > 0 && textArea.Document.GetCharAt(offset - 1) == '{')
         {
-            char prev = textArea.Document.GetCharAt(offset - 1);
+            string indent = textArea.Options.IndentationString;
+            string newLine = Environment.NewLine;
 
-            if(prev == '{')
-            {
-                string indent = textArea.Options.IndentationString;
-                string newLine = Environment.NewLine;
-
-                e.Handled = true;
-
-                textArea.Document.Insert(offset, newLine + indent + newLine);
-                textArea.Caret.Offset = offset + newLine.Length + indent.Length;
-            }
+            e.Handled = true;
+            textArea.Document.Insert(offset, newLine + indent + newLine);
+            textArea.Caret.Offset = offset + newLine.Length + indent.Length;
+            return;
         }
 
-        //自动格式化
-        if (App.Services.GetService<ISettingsService<AppSettings>>().Current.AutoFormatting)
+        // 自动格式化：输入 ; 且设置开启
+        if (input == ';'
+            && DataContext is EditorViewModel vm
+            && vm.Settings.AutoFormatting)
         {
-            if(input == ';')
+            // 让分号正常写入，然后在下一帧触发格式化
+            Dispatcher.UIThread.Post(() =>
             {
-                if (DataContext is EditorViewModel vm)
-                {
-                    textArea.Document.Insert(offset, ";");
+                if (vm.FormatDocumentCommand.CanExecute(null))
                     vm.FormatDocumentCommand.Execute(null);
-                }
-            }
+            }, DispatcherPriority.Background);
         }
     }
 }

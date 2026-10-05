@@ -2,73 +2,56 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
-using Zinc.Models;
 using Zinc.ViewModels;
 
 namespace Zinc.Views;
 
 public partial class MainView : UserControl
 {
-    int Count = 0;
-
-    bool IsSettingsOpen = false;
     private Window? _settingsWindow;
 
     public MainView()
     {
         InitializeComponent();
-        DataContext = ActivatorUtilities.CreateInstance<MainViewModel>(App.Services);
+        DataContext = App.Services.GetRequiredService<MainViewModel>();
     }
 
     private void TabView_AddTabButtonClick(FATabView sender, System.EventArgs args)
     {
         if (DataContext is MainViewModel vm)
         {
-            vm.Tabs.Add(
-                new TabItemModel() { Header = $"New Document {++Count}", Content = new EditorView() { } }
-            );
+            vm.AddNewTab();
         }
     }
 
     private void TabView_TabCloseRequested(FATabView sender, FATabViewTabCloseRequestedEventArgs args)
     {
-        if (DataContext is MainViewModel vm)
+        if (DataContext is MainViewModel vm && args.Item is EditorViewModel editor)
         {
-            vm.Tabs.Remove(args.Item as TabItemModel);
-
-            if (vm.Tabs.Count < 1)
-            {
-                vm.Tabs.Add(
-                    new TabItemModel() { Header = $"New Document {++Count}", Content = new EditorView() { } }
-                );
-            }
-
-            vm.SelectedItem = vm.Tabs.FirstOrDefault();
+            vm.CloseTab(editor);
         }
     }
 
     private void Settings_Click(object? sender, RoutedEventArgs e)
     {
-        if(!IsSettingsOpen){
+        if (_settingsWindow is null)
+        {
             _settingsWindow = new SettingsWindow();
-            _settingsWindow.Show(TopLevel.GetTopLevel(this) as Window);
             _settingsWindow.Closing += SettingsWindow_Closing;
-            IsSettingsOpen = true;
+            _settingsWindow.Show(TopLevel.GetTopLevel(this) as Window);
         }
         else
         {
-            _settingsWindow?.Activate();
+            _settingsWindow.Activate();
         }
     }
 
     private void SettingsWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
-        if(sender is Window window)
+        if (sender is Window window)
         {
             window.Closing -= SettingsWindow_Closing;
         }
         _settingsWindow = null;
-        IsSettingsOpen = false;
     }
 }

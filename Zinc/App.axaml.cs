@@ -45,7 +45,8 @@ namespace Zinc
                 services.AddSingleton<IFileService, FileService>();
                 services.AddSingleton<IJudgeService, JudgeService>();
                 services.AddSingleton<IFormatService, FormatService>();
-                services.AddSingleton<IProgramService, ProgramService>();
+                services.AddSingleton<IProgramService, ProgramService>(); 
+                services.AddSingleton<IEditorViewModelFactory, EditorViewModelFactory>();
 
                 services.AddSingleton<MainWindowViewModel>();
                 services.AddSingleton<MainViewModel>();

@@ -10,7 +10,7 @@
 			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:Class="Zinc.Views.MainView"
 			 x:DataType="vm:MainViewModel">
-	
+
 	<Grid Name="TitleBarHost"
 		  Background="Transparent">
 		<Grid.RowDefinitions>
@@ -39,23 +39,27 @@
 			<MenuItem Header="设置...(_I)" Click="Settings_Click" InputGesture="Ctrl+I" HotKey="Ctrl+I"/>
 		</Menu> 
 		<ui:FATabView Name="TabView"
-					  Grid.Row="1"
-					  Grid.ColumnSpan="2"
-					  TabItemsSource="{Binding Tabs}"
-					  SelectedItem="{Binding SelectedItem}"
-					  AddTabButtonClick="TabView_AddTabButtonClick"
-					  TabCloseRequested="TabView_TabCloseRequested"
-					  TabWidthMode="Equal"
-					  CloseButtonOverlayMode="OnPointerOver"
-					  TabStripLocation="Top"
-					  CanReorderTabs="True"
-					  CanDragTabs="True">
+              Grid.Row="1"
+              Grid.ColumnSpan="2"
+              TabItemsSource="{Binding Tabs}"
+              SelectedItem="{Binding SelectedItem}"
+              AddTabButtonClick="TabView_AddTabButtonClick"
+              TabCloseRequested="TabView_TabCloseRequested"
+              TabWidthMode="Equal"
+              CloseButtonOverlayMode="OnPointerOver"
+              CanReorderTabs="True"
+              CanDragTabs="True">
 			<ui:FATabView.TabItemTemplate>
-				<DataTemplate DataType="models:TabItemModel">
-					<ui:FATabViewItem Header="{Binding Header}"
-									  Content="{Binding Content}"/>
+				<DataTemplate DataType="vm:EditorViewModel">
+					<ui:FATabViewItem Header="{Binding Header}">
+						<ui:FATabViewItem.ContentTemplate>
+							<DataTemplate>
+								<views:EditorView/>
+							</DataTemplate>
+						</ui:FATabViewItem.ContentTemplate>
+					</ui:FATabViewItem>
 				</DataTemplate>
 			</ui:FATabView.TabItemTemplate>
-		</ui:FATabView>
+        </ui:FATabView>
 	</Grid>
 </UserControl>

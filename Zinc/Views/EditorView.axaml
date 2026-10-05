@@ -61,7 +61,7 @@
                          HorizontalAlignment="Stretch"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
-                         Text="{Binding CompileLog}"
+                         Text="{Binding Log}"
                          IsReadOnly="True"/>
                 <Grid Grid.Row="2" RowSpacing="8">
                     <Grid.RowDefinitions>
