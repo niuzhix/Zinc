@@ -10,6 +10,7 @@ namespace Zinc.Core.Services;
 
 public sealed class FormatService : IFormatService
 {
+    private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
     private readonly string? _path;
     private readonly string? _initError;
 
@@ -45,7 +46,9 @@ public sealed class FormatService : IFormatService
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
-            StandardOutputEncoding = Encoding.UTF8
+            StandardInputEncoding = Utf8NoBom,
+            StandardOutputEncoding = Utf8NoBom,
+            StandardErrorEncoding = Utf8NoBom
         };
 
         try

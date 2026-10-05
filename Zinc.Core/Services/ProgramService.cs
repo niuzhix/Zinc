@@ -11,6 +11,7 @@ namespace Zinc.Core.Services;
 
 public class ProgramService : IProgramService
 {
+    private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
     private const int CompilerVersionTimeoutMs = 2000;
     private const int CompileTimeoutMs = 30_000;
 
@@ -79,7 +80,10 @@ public class ProgramService : IProgramService
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    WorkingDirectory = Path.GetDirectoryName(options.CodePath) ?? string.Empty
+                    WorkingDirectory = Path.GetDirectoryName(options.CodePath) ?? string.Empty,
+                    StandardInputEncoding = Utf8NoBom,
+                    StandardOutputEncoding = Utf8NoBom,
+                    StandardErrorEncoding = Utf8NoBom
                 }
             };
 
