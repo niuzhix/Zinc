@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 using Zinc.Models;
 using Zinc.ViewModels;
 
@@ -36,12 +37,14 @@ public partial class MainView : UserControl
         {
             vm.Tabs.Remove(args.Item as TabItemModel);
 
-            if (vm.Tabs.Count > 1)
+            if (vm.Tabs.Count < 1)
             {
                 vm.Tabs.Add(
                     new TabItemModel() { Header = $"New Document {++Count}", Content = new EditorView() { } }
                 );
             }
+
+            vm.SelectedItem = vm.Tabs.FirstOrDefault();
         }
     }
 
