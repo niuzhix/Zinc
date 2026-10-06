@@ -226,9 +226,9 @@ public partial class EditorViewModel : ObservableObject
 
         foreach (var tc in TestCases)
         {
+            tc.Result = null;
             if (string.IsNullOrEmpty(tc.Input) || string.IsNullOrEmpty(tc.ExpectedOutput))
             {
-                tc.Result = null;
                 continue;
             }
 

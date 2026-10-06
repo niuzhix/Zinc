@@ -67,9 +67,15 @@ public class ProgramService : IProgramService
                 return result;
             }
 
-            string outputPath = GetOutputPath(options.CodePath);
+            string fullSourcePath = Path.GetFullPath(options.CodePath);
+            string outputPath = GetOutputPath(fullSourcePath);
+            string workingDir = Path.GetDirectoryName(fullSourcePath) ?? string.Empty;
+
             var arguments = BuildCompileArguments(options, outputPath);
             result.FullCommand = $"{compiler.Path} {string.Join(" ", arguments)}";
+
+            Console.WriteLine($"[OutputPath] {outputPath}");
+            Console.WriteLine($"[FullCommand] {result.FullCommand}");
 
             using var process = new Process
             {
@@ -80,8 +86,7 @@ public class ProgramService : IProgramService
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    WorkingDirectory = Path.GetDirectoryName(options.CodePath) ?? string.Empty,
-                    StandardInputEncoding = Utf8NoBom,
+                    WorkingDirectory = workingDir,
                     StandardOutputEncoding = Utf8NoBom,
                     StandardErrorEncoding = Utf8NoBom
                 }
@@ -115,10 +120,23 @@ public class ProgramService : IProgramService
             result.ExitCode = process.ExitCode;
             result.Output = await outputTask;
             result.Error = await errorTask;
-            result.IsSuccess = process.ExitCode == 0;
 
-            if (!result.IsSuccess)
+            Console.WriteLine($"[stdout] {result.Output}");
+            Console.WriteLine($"[stderr] {result.Error}");
+
+            if (process.ExitCode == 0 && File.Exists(outputPath))
             {
+                result.IsSuccess = true;
+            }
+            else if (process.ExitCode == 0)
+            {
+                result.IsSuccess = false;
+                result.ErrorType = CompileErrorType.CompilationFailed;
+                result.ErrorMessage = $"编译返回成功，但未找到产物: {outputPath}";
+            }
+            else
+            {
+                result.IsSuccess = false;
                 result.ErrorType = CompileErrorType.CompilationFailed;
                 result.ErrorMessage = "编译失败";
             }
@@ -282,11 +300,11 @@ public class ProgramService : IProgramService
         return args;
     }
 
-    private string GetOutputPath(string codePath)
+    private string GetOutputPath(string fullSourcePath)
     {
         return OperatingSystem.IsWindows()
-            ? Path.ChangeExtension(codePath, ".exe")
-            : Path.ChangeExtension(codePath, null);
+            ? Path.ChangeExtension(fullSourcePath, ".exe")
+            : Path.ChangeExtension(fullSourcePath, null);
     }
 
     private string GetStandardString(CppStandard standard)

@@ -6,6 +6,8 @@ using System.Text;
 
 public class JudgeService : IJudgeService
 {
+    private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
     private readonly IOutputComparer _outputComparer;
     private readonly IProcessMonitor _processMonitor;
 
@@ -119,11 +121,15 @@ public class JudgeService : IJudgeService
 
     private bool ValidateOptions(ExecutionOptions options)
     {
-        if (string.IsNullOrEmpty(options.ExecutablePath))
+        if (string.IsNullOrEmpty(options.ExecutablePath)){
+            Console.WriteLine(options.ExecutablePath);
             return false;
+        }
 
-        if (!File.Exists(options.ExecutablePath))
+        if (!File.Exists(options.ExecutablePath)){
+            Console.WriteLine(1);
             return false;
+        }
         return true;
     }
 
@@ -140,7 +146,10 @@ public class JudgeService : IJudgeService
             CreateNoWindow = true,
             WorkingDirectory = string.IsNullOrEmpty(options.WorkingDirectory)
                 ? Path.GetDirectoryName(options.ExecutablePath)
-                : options.WorkingDirectory
+                : options.WorkingDirectory,
+            StandardInputEncoding = Utf8NoBom,
+            StandardOutputEncoding = Utf8NoBom,
+            StandardErrorEncoding = Utf8NoBom
         };
 
         return new Process { StartInfo = startInfo };
