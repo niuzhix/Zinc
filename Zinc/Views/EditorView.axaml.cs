@@ -66,15 +66,46 @@ public partial class EditorView : UserControl
             return;
         }
 
-        // 自动缩进：输入 { 后换行
-        if (offset > 0 && textArea.Document.GetCharAt(offset - 1) == '{')
+        // 自动缩进
+        bool isNewLine = e.Text is "\n" or "\r" or "\r\n";
+        if (isNewLine
+            && offset > 0
+            && textArea.Document.GetCharAt(offset - 1) == '{')
         {
-            string indent = textArea.Options.IndentationString;
-            string newLine = Environment.NewLine;
+            var line = textArea.Document.GetLineByOffset(offset - 1);
+            int indentEnd = line.Offset;
+            while (indentEnd < line.EndOffset
+                   && (textArea.Document.GetCharAt(indentEnd) == ' '
+                       || textArea.Document.GetCharAt(indentEnd) == '\t'))
+                indentEnd++;
+
+            string baseIndent = textArea.Document.GetText(line.Offset, indentEnd - line.Offset);
+            string childIndent = baseIndent + textArea.Options.IndentationString;
+            string newline = e.Text;
+
+            // 跳过光标后的空白，检查是否紧跟 '}'
+            int probe = offset;
+            while (probe < textArea.Document.TextLength
+                   && (textArea.Document.GetCharAt(probe) == ' '
+                       || textArea.Document.GetCharAt(probe) == '\t'))
+                probe++;
+
+            bool hasClose = probe < textArea.Document.TextLength
+                            && textArea.Document.GetCharAt(probe) == '}';
 
             e.Handled = true;
-            textArea.Document.Insert(offset, newLine + indent + newLine);
-            textArea.Caret.Offset = offset + newLine.Length + indent.Length;
+
+            if (hasClose)
+            {
+                textArea.Document.Replace(offset, probe - offset,
+                    newline + childIndent + newline + baseIndent);
+            }
+            else
+            {
+                textArea.Document.Insert(offset, newline + childIndent);
+            }
+
+            textArea.Caret.Offset = offset + newline.Length + childIndent.Length;
             return;
         }
 
