@@ -9,7 +9,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<AvaloniaResource Include="Assets\**" />
+		<AvaloniaResource Include="Assets\**" >
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</AvaloniaResource>
 	</ItemGroup>
 
 	<ItemGroup>
