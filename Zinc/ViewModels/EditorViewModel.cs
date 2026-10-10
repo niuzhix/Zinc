@@ -57,7 +57,7 @@ public partial class EditorViewModel : ObservableObject
     {
         ShowTabs = true,
         ShowSpaces = true,
-        ShowEndOfLine = true,
+        ShowEndOfLine = false,
         EnableTextDragDrop = true,
         HighlightCurrentLine = false,
         CutCopyWholeLine = true,
