@@ -75,6 +75,10 @@ public partial class EditorViewModel : ObservableObject
     private string DisplayName =>
         string.IsNullOrEmpty(FileName) ? "未标题" : FileName;
 
+    private TextEditor? _editor;
+
+    public void AttachEditor(TextEditor editor) => _editor = editor;
+
     // ====== 构造 ======
 
     public EditorViewModel(
@@ -267,19 +271,41 @@ public partial class EditorViewModel : ObservableObject
     [RelayCommand]
     private async Task FormatDocumentAsync()
     {
-        var result = await _formatService.FormatAsync(Content.Text);
-        if (!result.Success)
+        if (_editor?.Document == null) return;
+
+        var oldCaret = _editor.CaretOffset;
+        var result = await _formatService.FormatAsync(_editor.Document.Text, offset: oldCaret);
+        if (!result.Success) return;
+
+        using (_editor.Document.RunUpdate())
+            _editor.Document.Text = result.Text;
+
+        _editor.CaretOffset = result.CursorOffset;
+        _editor.ScrollToLine(_editor.Document.GetLineByOffset(_editor.CaretOffset).LineNumber);
+    }
+
+    [RelayCommand]
+    private async Task FormatSelectionAsync()
+    {
+        if (_editor?.Document == null) return;
+
+        int start = _editor.SelectionStart;
+        int length = _editor.SelectionLength;
+
+        if (length == 0)
         {
-            Log += result.Error;
+            await FormatDocumentAsync();
             return;
         }
 
-        using (Content.RunUpdate())
-        {
-            Content.Text = result.Text;
-        }
+        var selected = _editor.Document.GetText(start, length);
+        var caretInSelection = _editor.CaretOffset - start;
 
-        IsDirty = true;
+        var result = await _formatService.FormatAsync(selected, offset: caretInSelection);
+        if (!result.Success) return;
+
+        _editor.Document.Replace(start, length, result.Text);
+        _editor.CaretOffset = start + result.CursorOffset;
     }
 
     private void AppendLog(string message)
