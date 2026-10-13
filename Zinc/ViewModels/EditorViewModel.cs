@@ -1,5 +1,8 @@
-﻿using AvaloniaEdit;
+﻿using Avalonia.Input;
+using Avalonia.Threading;
+using AvaloniaEdit;
 using AvaloniaEdit.Document;
+using AvaloniaEdit.Editing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
@@ -17,6 +20,23 @@ namespace Zinc.ViewModels;
 
 public partial class EditorViewModel : ObservableObject
 {
+    #region Constants
+
+    private const int DefaultTimeLimitMs = 2000;
+    private const int DefaultMemoryLimitMB = 256;
+    private const string UntitledName = "未标题";
+    private const string DefaultExtension = ".cpp";
+    private const string SaveDialogTitle = "选择保存文件位置";
+
+    private readonly IReadOnlyList<FileFilter> _filters =
+    [
+        new() { Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
+    ];
+
+    #endregion
+
+    #region Dependencies and Fields
+
     private readonly ISettingsService<AppSettings> _settingsService;
     private readonly IDialogService _dialogService;
     private readonly IFileService _fileService;
@@ -24,15 +44,11 @@ public partial class EditorViewModel : ObservableObject
     private readonly IJudgeService _judgeService;
     private readonly IFormatService _formatService;
 
-    private readonly IReadOnlyList<FileFilter> _filters =
-    [
-        new() { Name = "C++代码文件", Patterns = ["*.cpp", "*.cxx"] }
-    ];
+    private TextEditor? _editor;
 
-    private const int DefaultTimeLimitMs = 2000;
-    private const int DefaultMemoryLimitMB = 256;
+    #endregion
 
-    // ====== 可绑定状态 ======
+    #region Bindable State
 
     [ObservableProperty]
     private TextDocument _content;
@@ -68,18 +84,14 @@ public partial class EditorViewModel : ObservableObject
     public AppSettings Settings => _settingsService.Current;
 
     /// <summary>FATabView 显示用标题</summary>
-    public string Header => IsDirty
-        ? $"{DisplayName} *"
-        : DisplayName;
+    public string Header => IsDirty ? $"{DisplayName} *" : DisplayName;
 
     private string DisplayName =>
-        string.IsNullOrEmpty(FileName) ? "未标题" : FileName;
+        string.IsNullOrEmpty(FileName) ? UntitledName : FileName;
 
-    private TextEditor? _editor;
+    #endregion
 
-    public void AttachEditor(TextEditor editor) => _editor = editor;
-
-    // ====== 构造 ======
+    #region Construction
 
     public EditorViewModel(
         ISettingsService<AppSettings> settingsService,
@@ -100,9 +112,8 @@ public partial class EditorViewModel : ObservableObject
 
         _content = new TextDocument();
         if (!string.IsNullOrEmpty(content))
-        {
             _content.Insert(0, content);
-        }
+
         _content.TextChanged += (_, _) => IsDirty = true;
 
         FilePath = path;
@@ -112,12 +123,28 @@ public partial class EditorViewModel : ObservableObject
         EditorOptions.CutCopyWholeLine = Settings.CutCopyWholeLine;
     }
 
-    partial void OnFileNameChanged(string? value)
-        => OnPropertyChanged(nameof(Header));
+    partial void OnFileNameChanged(string? value) => OnPropertyChanged(nameof(Header));
 
-    partial void OnIsDirtyChanged(bool value)
-        => OnPropertyChanged(nameof(Header));
+    partial void OnIsDirtyChanged(bool value) => OnPropertyChanged(nameof(Header));
 
+    public void AttachEditor(TextEditor editor)
+    {
+        if (_editor is not null)
+            _editor.TextArea.TextEntering -= OnTextEntering;
+
+        _editor = editor;
+
+        if (_editor?.TextArea is null) return;
+
+        if (!ReferenceEquals(_editor.Document, _content))
+            _editor.Document = _content;
+
+        _editor.TextArea.TextEntering += OnTextEntering;
+    }
+
+    #endregion
+
+    #region Test Case Commands
 
     [RelayCommand]
     private void AddTestCase()
@@ -133,12 +160,19 @@ public partial class EditorViewModel : ObservableObject
         if (SelectedTestCase is null) return;
 
         TestCases.Remove(SelectedTestCase);
-        for (int i = 0; i < TestCases.Count; i++)
-        {
-            TestCases[i].Index = i + 1;
-        }
+        RenumberTestCases();
         SelectedTestCase = TestCases.LastOrDefault();
     }
+
+    private void RenumberTestCases()
+    {
+        for (int i = 0; i < TestCases.Count; i++)
+            TestCases[i].Index = i + 1;
+    }
+
+    #endregion
+
+    #region File Commands
 
     [RelayCommand]
     public async Task<bool> SaveAsync()
@@ -146,16 +180,15 @@ public partial class EditorViewModel : ObservableObject
         if (string.IsNullOrEmpty(FilePath))
         {
             var selectedPath = await _dialogService.SaveFilePathAsync(
-                "选择保存文件位置", "未标题", ".cpp", _filters);
+                SaveDialogTitle, UntitledName, DefaultExtension, _filters);
 
             if (string.IsNullOrEmpty(selectedPath))
                 return false;
 
-            FilePath = selectedPath;
-            FileName = Path.GetFileName(selectedPath);
+            ApplyPath(selectedPath);
         }
 
-        _fileService.SaveFile(FilePath, Content.Text);
+        WriteFile(FilePath!, Content.Text);
         IsDirty = false;
         return true;
     }
@@ -164,17 +197,27 @@ public partial class EditorViewModel : ObservableObject
     public async Task SaveAsAsync()
     {
         var selectedPath = await _dialogService.SaveFilePathAsync(
-            "选择保存文件位置", FileName ?? "未标题", ".cpp", _filters);
+            SaveDialogTitle, FileName ?? UntitledName, DefaultExtension, _filters);
 
         if (string.IsNullOrEmpty(selectedPath))
             return;
 
-        FilePath = selectedPath;
-        FileName = Path.GetFileName(selectedPath);
-
-        _fileService.SaveFile(selectedPath, Content.Text);
+        ApplyPath(selectedPath);
+        WriteFile(selectedPath, Content.Text);
         IsDirty = false;
     }
+
+    private void ApplyPath(string path)
+    {
+        FilePath = path;
+        FileName = Path.GetFileName(path);
+    }
+
+    private void WriteFile(string path, string text) => _fileService.SaveFile(path, text);
+
+    #endregion
+
+    #region Compile / Judge Commands
 
     [RelayCommand]
     private async Task CompileAsync()
@@ -185,28 +228,10 @@ public partial class EditorViewModel : ObservableObject
             return;
         }
 
-        foreach (var compiler in _programService.FindAllCompilers())
-        {
-            var tag = compiler.IsDefault ? "默认" : "    ";
-            Console.WriteLine($"[{tag}] {compiler.Path}");
-            Console.WriteLine($"    版本: {compiler.Version}");
-        }
-
-        var options = new CompileOptions
-        {
-            CodePath = FilePath,
-            CompilerPath = Settings.CompilerPath,
-            enableO2 = Settings.EnableO2,
-            enableGDB = Settings.EnableGDB,
-            StandardVersion = Settings.StandardVersion,
-            warningCheck = Settings.WarningCheck,
-            overAddressCheck = Settings.OverAddressCheck
-        };
+        LogAvailableCompilers();
 
         AppendLog($"开始编译 {FileName}");
-
-        var result = await _programService.CompileAsync(options);
-
+        var result = await _programService.CompileAsync(BuildCompileOptions());
         Log += _programService.LogCompileResult(result);
     }
 
@@ -222,38 +247,16 @@ public partial class EditorViewModel : ObservableObject
             return;
         }
 
-        var executablePath = OperatingSystem.IsWindows()
-            ? Path.ChangeExtension(FilePath, ".exe")
-            : Path.ChangeExtension(FilePath, null);
-
+        var executablePath = GetExecutablePath(FilePath);
         int passed = 0;
 
         foreach (var tc in TestCases)
         {
             tc.Result = null;
-            if (string.IsNullOrEmpty(tc.Input) || string.IsNullOrEmpty(tc.ExpectedOutput))
-            {
-                continue;
-            }
+            if (IsIncomplete(tc)) continue;
 
-            var options = new ExecutionOptions
-            {
-                ExecutablePath = executablePath,
-                StandardInput = tc.Input,
-                ExpectedOutput = tc.ExpectedOutput,
-                TimeLimitMs = DefaultTimeLimitMs,
-                MemoryLimitMB = DefaultMemoryLimitMB
-            };
-
-            var result = await _judgeService.ExecuteAsync(options);
-
-            tc.Result = result.Result;
-            tc.ActualOutput = result.StandardOutput;
-            tc.ErrorOutput = result.ErrorOutput;
-            tc.ExecutionTimeMs = result.ExecutionTime.TotalMilliseconds;
-
-            if (result.Result == JudgeResult.AC)
-                passed++;
+            var result = await RunTestCaseAsync(executablePath, tc);
+            if (result.Result == JudgeResult.AC) passed++;
 
             LogTestResult(tc, result);
         }
@@ -268,6 +271,60 @@ public partial class EditorViewModel : ObservableObject
         await JudgeAsync();
     }
 
+    private void LogAvailableCompilers()
+    {
+        foreach (var compiler in _programService.FindAllCompilers())
+        {
+            var tag = compiler.IsDefault ? "默认" : "    ";
+            Console.WriteLine($"[{tag}] {compiler.Path}");
+            Console.WriteLine($"    版本: {compiler.Version}");
+        }
+    }
+
+    private CompileOptions BuildCompileOptions() => new()
+    {
+        CodePath = FilePath,
+        CompilerPath = Settings.CompilerPath,
+        enableO2 = Settings.EnableO2,
+        enableGDB = Settings.EnableGDB,
+        StandardVersion = Settings.StandardVersion,
+        warningCheck = Settings.WarningCheck,
+        overAddressCheck = Settings.OverAddressCheck
+    };
+
+    private static string GetExecutablePath(string codePath) =>
+        OperatingSystem.IsWindows()
+            ? Path.ChangeExtension(codePath, ".exe")
+            : Path.ChangeExtension(codePath, null);
+
+    private static bool IsIncomplete(TestCase tc) =>
+        string.IsNullOrEmpty(tc.Input) || string.IsNullOrEmpty(tc.ExpectedOutput);
+
+    private async Task<ExecutionResult> RunTestCaseAsync(string executablePath, TestCase tc)
+    {
+        var options = new ExecutionOptions
+        {
+            ExecutablePath = executablePath,
+            StandardInput = tc.Input,
+            ExpectedOutput = tc.ExpectedOutput,
+            TimeLimitMs = DefaultTimeLimitMs,
+            MemoryLimitMB = DefaultMemoryLimitMB
+        };
+
+        var result = await _judgeService.ExecuteAsync(options);
+
+        tc.Result = result.Result;
+        tc.ActualOutput = result.StandardOutput;
+        tc.ErrorOutput = result.ErrorOutput;
+        tc.ExecutionTimeMs = result.ExecutionTime.TotalMilliseconds;
+
+        return result;
+    }
+
+    #endregion
+
+    #region Format Commands
+
     [RelayCommand]
     private async Task FormatDocumentAsync()
     {
@@ -280,8 +337,7 @@ public partial class EditorViewModel : ObservableObject
         using (_editor.Document.RunUpdate())
             _editor.Document.Text = result.Text;
 
-        _editor.CaretOffset = result.CursorOffset;
-        _editor.ScrollToLine(_editor.Document.GetLineByOffset(_editor.CaretOffset).LineNumber);
+        MoveCaretTo(result.CursorOffset);
     }
 
     [RelayCommand]
@@ -305,13 +361,51 @@ public partial class EditorViewModel : ObservableObject
         if (!result.Success) return;
 
         _editor.Document.Replace(start, length, result.Text);
-        _editor.CaretOffset = start + result.CursorOffset;
+        MoveCaretTo(start + result.CursorOffset);
     }
+
+    private void MoveCaretTo(int offset)
+    {
+        if (_editor == null) return;
+
+        _editor.CaretOffset = offset;
+        _editor.ScrollToLine(_editor.Document.GetLineByOffset(offset).LineNumber);
+    }
+
+    #endregion
+
+    #region Text Input Handling
+
+    private void OnTextEntering(object? sender, TextInputEventArgs e)
+    {
+        if (_editor?.TextArea is not { } textArea) return;
+        if (string.IsNullOrEmpty(e.Text)) return;
+
+        var doc = textArea.Document;
+        int offset = textArea.Caret.Offset;
+        char input = e.Text[0];
+
+        if (TextInputHelper.TryHandleBracket(textArea, doc, offset, input, e)) return;
+        if (TextInputHelper.TryAutoIndentOnBrace(textArea, doc, offset, e)) return;
+
+        if (input == ';' && Settings.AutoFormatting)
+            Dispatcher.UIThread.Post(TriggerFormatDocument, DispatcherPriority.Background);
+    }
+
+    private void TriggerFormatDocument()
+    {
+        if (FormatDocumentCommand.CanExecute(null))
+            FormatDocumentCommand.Execute(null);
+    }
+
+    #endregion
+
+    #region Logging
 
     private void AppendLog(string message)
         => Log += $"[{DateTime.Now:T}] [{message}]\n";
 
-    private void LogTestResult(TestCase tc, ExecutionResult result)
+    private static void LogTestResult(TestCase tc, ExecutionResult result)
     {
         Console.WriteLine($"[测试点 {tc.Index}] 状态: {result.Result}, " +
                           $"耗时: {result.ExecutionTime.TotalMilliseconds:F2}ms");
@@ -319,14 +413,128 @@ public partial class EditorViewModel : ObservableObject
         if (result.Result == JudgeResult.WA && result.Differences.Count > 0)
         {
             foreach (var diff in result.Differences)
-            {
                 Console.WriteLine($"  {diff.Actual}");
-            }
         }
 
         if (!string.IsNullOrEmpty(result.ErrorOutput))
-        {
             Console.WriteLine($"=== 错误输出 ===\n{result.ErrorOutput}");
-        }
     }
+
+    #endregion
+}
+
+internal static class TextInputHelper
+{
+    private static readonly Dictionary<char, char> BracketPairs = new()
+    {
+        { '(', ')' }, { '[', ']' }, { '{', '}' }, { '"', '"' }, { '\'', '\'' }
+    };
+
+    private static readonly HashSet<char> ClosingChars = new() { ')', ']', '}', '"', '\'' };
+
+    /// <summary>
+    /// 处理括号/引号输入。返回 true 表示输入已处理，调用方应直接 return。
+    /// </summary>
+    public static bool TryHandleBracket(
+        TextArea textArea, TextDocument doc, int offset, char input, TextInputEventArgs e)
+    {
+        // 1. 有选中内容：用括号对包裹
+        if (textArea.Selection.Length > 0 && BracketPairs.TryGetValue(input, out char pairClose))
+        {
+            var segment = textArea.Selection.SurroundingSegment;
+            if (segment != null)
+            {
+                string selected = doc.GetText(segment.Offset, segment.Length);
+                doc.Replace(segment.Offset, segment.Length, input + selected + pairClose);
+                textArea.Caret.Offset = segment.Offset + segment.Length + 2;
+                e.Handled = true;
+                return true;
+            }
+        }
+
+        // 2. 纯闭字符 ) ] }：后面就是它自己 → 跳过
+        if (ClosingChars.Contains(input) && !IsQuote(input))
+        {
+            if (offset < doc.TextLength && doc.GetCharAt(offset) == input)
+            {
+                textArea.Caret.Offset = offset + 1;
+                e.Handled = true;
+            }
+            return true;
+        }
+
+        // 3. 开字符 ( [ { 与引号
+        if (BracketPairs.TryGetValue(input, out char closing))
+        {
+            // 引号后面已是同一个引号 → 跳过
+            if (IsQuote(input)
+                && offset < doc.TextLength
+                && doc.GetCharAt(offset) == input)
+            {
+                textArea.Caret.Offset = offset + 1;
+                e.Handled = true;
+                return true;
+            }
+
+            // 引号紧跟单词字符 → 不配对，按普通输入处理
+            if (IsQuote(input) && offset > 0 && IsWordChar(doc.GetCharAt(offset - 1)))
+                return false;
+
+            // 插入配对闭字符，光标留原位
+            doc.Insert(offset, closing.ToString());
+            textArea.Caret.Offset = offset;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// '{' 后换行自动缩进；后面紧跟 '}' 时同时补出收尾缩进。
+    /// </summary>
+    public static bool TryAutoIndentOnBrace(
+        TextArea textArea, TextDocument doc, int offset, TextInputEventArgs e)
+    {
+        bool isNewLine = e.Text is "\n" or "\r" or "\r\n";
+        if (!isNewLine || offset <= 0) return false;
+        if (doc.GetCharAt(offset - 1) != '{') return false;
+
+        var line = doc.GetLineByOffset(offset - 1);
+        int indentEnd = line.Offset;
+        while (indentEnd < line.EndOffset
+               && (doc.GetCharAt(indentEnd) == ' ' || doc.GetCharAt(indentEnd) == '\t'))
+            indentEnd++;
+
+        string baseIndent = doc.GetText(line.Offset, indentEnd - line.Offset);
+        string childIndent = baseIndent + textArea.Options.IndentationString;
+        string newline = e.Text;
+
+        // 跳过光标后的空白，检查是否紧跟 '}'
+        int probe = offset;
+        while (probe < doc.TextLength
+               && (doc.GetCharAt(probe) == ' ' || doc.GetCharAt(probe) == '\t'))
+            probe++;
+
+        bool hasClose = probe < doc.TextLength && doc.GetCharAt(probe) == '}';
+
+        e.Handled = true;
+
+        if (hasClose)
+        {
+            doc.Replace(offset, probe - offset,
+                newline + childIndent + newline + baseIndent);
+        }
+        else
+        {
+            doc.Insert(offset, newline + childIndent);
+        }
+
+        textArea.Caret.Offset = offset + newline.Length + childIndent.Length;
+        return true;
+    }
+
+    private static bool IsQuote(char c) => c is '"' or '\'';
+
+    private static bool IsWordChar(char c) =>
+        char.IsLetterOrDigit(c) || c == '_';
 }
