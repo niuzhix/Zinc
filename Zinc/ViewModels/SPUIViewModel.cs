@@ -14,20 +14,29 @@ public partial class SPUIViewModel : ObservableObject
 {
     private readonly ISettingsService<AppSettings> _settingsService;
 
-    private static readonly FontFamily FallbackFont =
-        new("avares://Zinc/Assets/Fonts#FiraCode.ttf#Fira Code");
+    private static readonly FontFamily BundledFallback =
+        new("avares://Zinc/Assets/Fonts#Fira Code Light");
 
-    private static readonly FontFamily SystemFallback =
-        new("Consolas");
+    private static readonly FontFamily SystemFallback = new("Consolas");
 
     public SPUIViewModel(ISettingsService<AppSettings> settingsService)
     {
         _settingsService = settingsService;
 
-        foreach (var f in FontManager.Current.SystemFonts.OrderBy(x => x.Name))
+        foreach (var f in FontManager.Current.SystemFonts
+                     .Where(IsConcreteFontFamily)
+                     .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+        {
             FontFamilies.Add(f);
+        }
 
-        Settings.EditorFont = Resolve(Settings.EditorFont, Settings.EditorFontWeight);
+        var weight = NormalizeWeight(Settings.EditorFontWeight);
+        var resolved = Resolve(Settings.EditorFont, weight);
+
+        Settings.EditorFontWeight = weight;
+        Settings.EditorFont = resolved;
+
+        EnsureFontInList(resolved);
     }
 
     [ObservableProperty]
@@ -58,7 +67,13 @@ public partial class SPUIViewModel : ObservableObject
         set
         {
             if (value is null) return;
-            Settings.EditorFont = Resolve(value, Settings.EditorFontWeight);
+
+            var resolved = Resolve(value, Settings.EditorFontWeight);
+            if (Equals(resolved, Settings.EditorFont)) return;
+
+            Settings.EditorFont = resolved;
+            OnPropertyChanged();
+            EnsureFontInList(resolved);
         }
     }
 
@@ -67,24 +82,69 @@ public partial class SPUIViewModel : ObservableObject
         get => Settings.EditorFontWeight;
         set
         {
-            Settings.EditorFontWeight = value;
-            Settings.EditorFont = Resolve(Settings.EditorFont, value);
+            var normalized = NormalizeWeight(value);
+            if (normalized == Settings.EditorFontWeight) return;
+
+            Settings.EditorFontWeight = normalized;
+            OnPropertyChanged();
+
+            var resolved = Resolve(Settings.EditorFont, normalized);
+            if (!Equals(resolved, Settings.EditorFont))
+            {
+                Settings.EditorFont = resolved;
+                OnPropertyChanged(nameof(SelectedFont));
+                EnsureFontInList(resolved);
+            }
         }
     }
 
-    private static FontFamily Resolve(FontFamily preferred, FontWeight weight)
+    private void EnsureFontInList(FontFamily font)
     {
-        if (IsUsable(preferred, weight)) return preferred;
-
-        if (IsUsable(FallbackFont, weight)) return FallbackFont;
-
-        if (IsUsable(FallbackFont, FontWeight.Normal)) return FallbackFont;
-
-        return SystemFallback;
+        if (FontFamilies.Any(f => Equals(f, font))) return;
+        FontFamilies.Insert(0, font);
     }
 
-    private static bool IsUsable(FontFamily family, FontWeight weight)
+    private FontWeight NormalizeWeight(FontWeight weight)
+        => AvailableFontWeights.Contains(weight) ? weight : FontWeight.Normal;
+
+    private static bool IsConcreteFontFamily(FontFamily family)
     {
+        if (family is null) return false;
+
+        if (family.Key?.Source == FontManager.Current.SystemFonts.Key) return false;
+
+        if (family.Name?.StartsWith("fonts:", StringComparison.OrdinalIgnoreCase) == true)
+            return false;
+
+        return !string.IsNullOrWhiteSpace(family.Name);
+    }
+
+    private static FontFamily Resolve(FontFamily? preferred, FontWeight weight)
+    {
+        if (preferred is not null
+            && IsConcreteFontFamily(preferred)
+            && IsUsable(preferred, weight))
+        {
+            return preferred;
+        }
+
+        if (IsUsable(BundledFallback, weight))
+            return BundledFallback;
+
+        if (IsUsable(BundledFallback, FontWeight.Normal))
+            return BundledFallback;
+
+        if (IsUsable(SystemFallback, weight))
+            return SystemFallback;
+
+        return FontManager.Current.DefaultFontFamily;
+    }
+
+    private static bool IsUsable(FontFamily? family, FontWeight weight)
+    {
+        if (family is null) return false;
+        if (!IsConcreteFontFamily(family)) return false;
+
         try
         {
             var typeface = new Typeface(family, FontStyle.Normal, weight);
