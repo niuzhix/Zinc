@@ -16,7 +16,7 @@ public partial class EditorView : UserControl
     {
         InitializeComponent();
 
-        var registryOptions = new RegistryOptions(ThemeName.DarkPlus);
+        var registryOptions = new RegistryOptions(ThemeName.LightPlus);
         var textMateInstallation = CodeEditor.InstallTextMate(registryOptions);
         textMateInstallation.SetGrammar(
             registryOptions.GetScopeByLanguageId(

@@ -4,11 +4,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:services="using:Zinc.Services"
+        xmlns:vm="using:Zinc.ViewModels"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         MinWidth="560"
         Icon="/Assets/Zinc.ico"
         Title="应用设置" Height="550" Width="1240"
-        x:Class="Zinc.Views.SettingsWindow">
+        x:Class="Zinc.Views.SettingsWindow"
+        x:DataType="vm:SettingsWindowViewModel">
     <controls:FANavigationView HorizontalAlignment="Stretch"
                                VerticalAlignment="Stretch"
                                PaneDisplayMode="Auto"
@@ -16,6 +19,9 @@
                                IsSettingsVisible="False"
                                OpenPaneLength="283"
                                SelectionChanged="FANavigationView_SelectionChanged">
+        <controls:FANavigationView.Content>
+            <controls:FAFrame x:Name="ContentFrame" />
+        </controls:FANavigationView.Content>
         <controls:FANavigationView.MenuItems>
             <controls:FANavigationViewItem Content="外观" Tag="UI" IconSource="{controls1:FluentIconSource &#xE51E;}"/>
             <controls:FANavigationViewItem Content="编译" Tag="Compile" IconSource="{controls1:FluentIconSource &#xE423;}"/>
