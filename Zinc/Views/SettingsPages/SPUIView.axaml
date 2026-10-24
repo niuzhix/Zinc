@@ -129,8 +129,8 @@
                 </controls:FASettingsExpander>
                 <controls1:IconText Glyph="&#xF26F;" Text="字体预览" Margin="0,0,0,8"/>
                 <TextBox Text="{Binding TestText}"
-                         FontFamily="{Binding Settings.EditorFont}"
-                         FontWeight="{Binding Settings.EditorFontWeight}"
+                         FontFamily="{Binding SelectedFont}"
+                         FontWeight="{Binding SelectedFontWeight}"
                          FontSize="{Binding Settings.EditorFontSize}"
                          Height="180"/>
             </StackPanel>

@@ -59,11 +59,18 @@ namespace Zinc
 
             Theme = App.Current.Styles.OfType<FluentAvaloniaTheme>().FirstOrDefault();
 
+            // 启动时一次性校正持久化的编辑器字体，避免各消费方拿到不可用的字体。
+            EditorFontResolver.EnsureUsable(
+                Services.GetRequiredService<ISettingsService<AppSettings>>().Current);
+
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // MainWindow 在自己的构造函数里从 Services 取 MainWindowViewModel 作为 DataContext，
                 // 这里再赋值一次会覆盖它并额外创建一个实例。
                 desktop.MainWindow = new MainWindow();
+
+                // 设置写入是防抖的，退出时释放容器以冲刷尚未落盘的改动。
+                desktop.Exit += (_, _) => (Services as IDisposable)?.Dispose();
             }
 
             base.OnFrameworkInitializationCompleted();
