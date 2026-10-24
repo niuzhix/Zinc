@@ -2,7 +2,7 @@
 using AvaloniaEdit;
 using Zinc.ViewModels;
 
-namespace Zinc.Core.Views; // 根据你的实际命名空间调整
+namespace Zinc.Core.Views;
 
 public static class EditorBinding
 {

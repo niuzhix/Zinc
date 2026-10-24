@@ -18,7 +18,7 @@ using Zinc.Models;
 
 namespace Zinc.ViewModels;
 
-public partial class EditorViewModel : ObservableObject
+public partial class EditorViewModel : ObservableObject, IDisposable
 {
     #region Constants
 
@@ -45,13 +45,30 @@ public partial class EditorViewModel : ObservableObject
     private readonly IFormatService _formatService;
 
     private TextEditor? _editor;
+    private bool _autoFormatQueued;
+
+    private static readonly TimeSpan AutoFormatDelay = TimeSpan.FromMilliseconds(400);
 
     #endregion
 
     #region Bindable State
 
-    [ObservableProperty]
-    private TextDocument _content;
+    private TextDocument _content = new();
+
+    /// <summary>编辑器的文档；替换时自动转移 TextChanged 订阅。</summary>
+    public TextDocument Content
+    {
+        get => _content;
+        set
+        {
+            if (ReferenceEquals(_content, value)) return;
+
+            var oldValue = _content;
+            _content = value;
+            OnContentChanged(oldValue, value);
+            OnPropertyChanged();
+        }
+    }
 
     [ObservableProperty]
     private string? _fileName = string.Empty;
@@ -110,17 +127,59 @@ public partial class EditorViewModel : ObservableObject
         _judgeService = judgeService;
         _formatService = formatService;
 
-        _content = new TextDocument();
+        var document = new TextDocument();
         if (!string.IsNullOrEmpty(content))
-            _content.Insert(0, content);
+            document.Insert(0, content);
 
-        _content.TextChanged += (_, _) => IsDirty = true;
+        // 先写入内容再交给 Content，订阅在 OnContentChanged 里建立，
+        // 初始载入不会被标记为已修改。
+        Content = document;
 
         FilePath = path;
         FileName = string.IsNullOrEmpty(path) ? string.Empty : Path.GetFileName(path);
 
+        ApplyEditorOptions();
+        _settingsService.SettingsChanged += OnSettingsChanged;
+    }
+
+    private void OnContentChanged(TextDocument? oldValue, TextDocument? newValue)
+    {
+        if (oldValue is not null)
+            oldValue.TextChanged -= OnDocumentTextChanged;
+
+        if (newValue is not null)
+            newValue.TextChanged += OnDocumentTextChanged;
+    }
+
+    private void OnDocumentTextChanged(object? sender, EventArgs e) => IsDirty = true;
+
+    /// <summary>把设置中影响编辑器行为的项同步到 <see cref="TextEditorOptions"/>。</summary>
+    private void ApplyEditorOptions()
+    {
         EditorOptions.HighlightCurrentLine = Settings.HighlightCurrentLine;
         EditorOptions.CutCopyWholeLine = Settings.CutCopyWholeLine;
+    }
+
+    private void OnSettingsChanged(object? sender, SettingsChangedEventArgs<AppSettings> e)
+    {
+        if (e.PropertyName is null
+            or nameof(AppSettings.HighlightCurrentLine)
+            or nameof(AppSettings.CutCopyWholeLine))
+        {
+            ApplyEditorOptions();
+        }
+    }
+
+    public void Dispose()
+    {
+        _settingsService.SettingsChanged -= OnSettingsChanged;
+        Content.TextChanged -= OnDocumentTextChanged;
+
+        if (_editor is not null)
+        {
+            _editor.TextArea.TextEntering -= OnTextEntering;
+            _editor = null;
+        }
     }
 
     partial void OnFileNameChanged(string? value) => OnPropertyChanged(nameof(Header));
@@ -138,9 +197,9 @@ public partial class EditorViewModel : ObservableObject
 
         if (_editor?.TextArea is null) return;
 
-        if (!ReferenceEquals(_editor.Document, _content))
+        if (!ReferenceEquals(_editor.Document, Content))
         {
-            _editor.Document = _content;
+            _editor.Document = Content;
         }
 
         _editor.TextArea.TextEntering += OnTextEntering;
@@ -247,7 +306,7 @@ public partial class EditorViewModel : ObservableObject
 
         AppendLog($"开始编译 {FileName}");
         var result = await _programService.CompileAsync(BuildCompileOptions());
-        Log += _programService.LogCompileResult(result);
+        AppendRawLog(_programService.LogCompileResult(result));
     }
 
     [RelayCommand]
@@ -288,11 +347,17 @@ public partial class EditorViewModel : ObservableObject
 
     private void LogAvailableCompilers()
     {
-        foreach (var compiler in _programService.FindAllCompilers())
+        var compilers = _programService.FindAllCompilers();
+        if (compilers.Count == 0)
         {
-            var tag = compiler.IsDefault ? "默认" : "    ";
-            Console.WriteLine($"[{tag}] {compiler.Path}");
-            Console.WriteLine($"    版本: {compiler.Version}");
+            AppendLog("未找到 C++ 编译器");
+            return;
+        }
+
+        foreach (var compiler in compilers)
+        {
+            var tag = compiler.IsDefault ? "默认" : "备用";
+            AppendLog($"[{tag}] {compiler.Path} — {compiler.Version}");
         }
     }
 
@@ -343,25 +408,38 @@ public partial class EditorViewModel : ObservableObject
     [RelayCommand]
     private async Task FormatDocumentAsync()
     {
-        if (_editor?.Document == null) return;
+        var editor = _editor;
+        if (editor?.Document is null) return;
 
-        var oldCaret = _editor.CaretOffset;
-        var result = await _formatService.FormatAsync(_editor.Document.Text, offset: oldCaret);
+        var oldCaret = editor.CaretOffset;
+        var result = await _formatService.FormatAsync(editor.Document.Text, offset: oldCaret);
         if (!result.Success) return;
 
-        using (_editor.Document.RunUpdate())
-            _editor.Document.Text = result.Text;
+        // 期间可能已切换编辑器/标签页，或文档已被替换
+        if (!ReferenceEquals(_editor, editor)) return;
 
+        ApplyDocumentText(editor, result.Text);
         MoveCaretTo(result.CursorOffset);
+    }
+
+    /// <summary>只在文本确实变化时替换文档；等价结果不触发 TextChanged、不置脏。</summary>
+    private static void ApplyDocumentText(TextEditor editor, string text)
+    {
+        if (string.Equals(editor.Document.Text, text, StringComparison.Ordinal))
+            return;
+
+        using (editor.Document.RunUpdate())
+            editor.Document.Text = text;
     }
 
     [RelayCommand]
     private async Task FormatSelectionAsync()
     {
-        if (_editor?.Document == null) return;
+        var editor = _editor;
+        if (editor?.Document is null) return;
 
-        int start = _editor.SelectionStart;
-        int length = _editor.SelectionLength;
+        int start = editor.SelectionStart;
+        int length = editor.SelectionLength;
 
         if (length == 0)
         {
@@ -369,13 +447,18 @@ public partial class EditorViewModel : ObservableObject
             return;
         }
 
-        var selected = _editor.Document.GetText(start, length);
-        var caretInSelection = _editor.CaretOffset - start;
+        var selected = editor.Document.GetText(start, length);
+        var caretInSelection = editor.CaretOffset - start;
 
         var result = await _formatService.FormatAsync(selected, offset: caretInSelection);
         if (!result.Success) return;
+        if (!ReferenceEquals(_editor, editor)) return;
 
-        _editor.Document.Replace(start, length, result.Text);
+        if (!string.Equals(selected, result.Text, StringComparison.Ordinal))
+        {
+            editor.Document.Replace(start, length, result.Text);
+        }
+
         MoveCaretTo(start + result.CursorOffset);
     }
 
@@ -404,11 +487,27 @@ public partial class EditorViewModel : ObservableObject
         if (TextInputHelper.TryAutoIndentOnBrace(textArea, doc, offset, e)) return;
 
         if (input == ';' && Settings.AutoFormatting)
-            Dispatcher.UIThread.Post(TriggerFormatDocument, DispatcherPriority.Background);
+            RequestAutoFormat();
+    }
+
+    /// <summary>把连续输入的分号触发的格式化合并成一次（400ms 窗口内只排一次）。</summary>
+    private void RequestAutoFormat()
+    {
+        if (_autoFormatQueued) return;
+
+        _autoFormatQueued = true;
+        DispatcherTimer.RunOnce(
+            () =>
+            {
+                _autoFormatQueued = false;
+                TriggerFormatDocument();
+            },
+            AutoFormatDelay);
     }
 
     private void TriggerFormatDocument()
     {
+        if (FormatDocumentCommand.IsRunning) return;
         if (FormatDocumentCommand.CanExecute(null))
             FormatDocumentCommand.Execute(null);
     }
@@ -418,21 +517,28 @@ public partial class EditorViewModel : ObservableObject
     #region Logging
 
     private void AppendLog(string message)
-        => Log += $"[{DateTime.Now:T}] [{message}]\n";
+        => AppendRawLog($"[{DateTime.Now:T}] [{message}]");
 
-    private static void LogTestResult(TestCase tc, ExecutionResult result)
+    /// <summary>追加一段已经格式化好的文本，保证以换行结尾。</summary>
+    private void AppendRawLog(string text)
     {
-        Console.WriteLine($"[测试点 {tc.Index}] 状态: {result.Result}, " +
-                          $"耗时: {result.ExecutionTime.TotalMilliseconds:F2}ms");
+        if (string.IsNullOrEmpty(text)) return;
+
+        Log += text.EndsWith('\n') ? text : text + Environment.NewLine;
+    }
+
+    private void LogTestResult(TestCase tc, ExecutionResult result)
+    {
+        AppendLog($"[测试点 {tc.Index}] 状态: {result.Result}, 耗时: {result.ExecutionTime.TotalMilliseconds:F2}ms");
 
         if (result.Result == JudgeResult.WA && result.Differences.Count > 0)
         {
             foreach (var diff in result.Differences)
-                Console.WriteLine($"  {diff.Actual}");
+                AppendLog($"  第 {diff.LineNumber} 行 实际: {diff.Actual}");
         }
 
         if (!string.IsNullOrEmpty(result.ErrorOutput))
-            Console.WriteLine($"=== 错误输出 ===\n{result.ErrorOutput}");
+            AppendRawLog($"=== 错误输出 ===\n{result.ErrorOutput}");
     }
 
     #endregion

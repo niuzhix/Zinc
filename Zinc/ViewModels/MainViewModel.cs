@@ -56,6 +56,7 @@ public partial class MainViewModel : ObservableObject
     public void CloseTab(EditorViewModel vm)
     {
         Tabs.Remove(vm);
+        vm.Dispose();
 
         if (Tabs.Count == 0)
         {
