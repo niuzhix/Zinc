@@ -26,7 +26,7 @@
             <edit:TextEditor x:Name="CodeEditor"
                              views:EditorBinding.Host="{Binding}"
                              Grid.Column="0"
-                             Document="{Binding Content,Mode=TwoWay}"
+                             Document="{Binding Content}"
                              HorizontalAlignment="Stretch"
                              VerticalAlignment="Stretch"
                              FontFamily="{Binding Settings.EditorFont}"

@@ -130,16 +130,31 @@ public partial class EditorViewModel : ObservableObject
     public void AttachEditor(TextEditor editor)
     {
         if (_editor is not null)
+        {
             _editor.TextArea.TextEntering -= OnTextEntering;
+        }
 
         _editor = editor;
 
         if (_editor?.TextArea is null) return;
 
         if (!ReferenceEquals(_editor.Document, _content))
+        {
             _editor.Document = _content;
+        }
 
         _editor.TextArea.TextEntering += OnTextEntering;
+    }
+    public void DetachEditor(TextEditor editor)
+    {
+        if (ReferenceEquals(_editor, editor))
+        {
+            if (_editor?.TextArea is not null)
+            {
+                _editor.TextArea.TextEntering -= OnTextEntering;
+            }
+            _editor = null;
+        }
     }
 
     #endregion
