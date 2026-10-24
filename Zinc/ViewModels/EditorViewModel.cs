@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Zinc.Abstractions;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
+using Zinc.Core.Services;
 using Zinc.Models;
 
 namespace Zinc.ViewModels;
@@ -302,7 +303,7 @@ public partial class EditorViewModel : ObservableObject, IDisposable
             return;
         }
 
-        LogAvailableCompilers();
+        await LogAvailableCompilersAsync();
 
         AppendLog($"开始编译 {FileName}");
         var result = await _programService.CompileAsync(BuildCompileOptions());
@@ -345,9 +346,9 @@ public partial class EditorViewModel : ObservableObject, IDisposable
         await JudgeAsync();
     }
 
-    private void LogAvailableCompilers()
+    private async Task LogAvailableCompilersAsync()
     {
-        var compilers = _programService.FindAllCompilers();
+        var compilers = await _programService.FindAllCompilersAsync();
         if (compilers.Count == 0)
         {
             AppendLog("未找到 C++ 编译器");
@@ -373,9 +374,7 @@ public partial class EditorViewModel : ObservableObject, IDisposable
     };
 
     private static string GetExecutablePath(string codePath) =>
-        OperatingSystem.IsWindows()
-            ? Path.ChangeExtension(codePath, ".exe")
-            : Path.ChangeExtension(codePath, null);
+        CompileArtifacts.GetExecutablePath(codePath);
 
     private static bool IsIncomplete(TestCase tc) =>
         string.IsNullOrEmpty(tc.Input) || string.IsNullOrEmpty(tc.ExpectedOutput);

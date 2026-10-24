@@ -12,8 +12,35 @@ namespace Zinc.Core.Services;
 public class ProgramService : IProgramService
 {
     private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
     private const int CompilerVersionTimeoutMs = 2000;
     private const int CompileTimeoutMs = 30_000;
+    private const string UnknownVersion = "Unknown Version";
+
+    private static readonly string[] WindowsCompilerNames = ["g++.exe", "clang++.exe"];
+    private static readonly string[] UnixCompilerNames = ["g++", "clang++"];
+
+    private static readonly string[] WindowsFallbackPaths =
+    [
+        @"C:\mingw64\bin\g++.exe",
+        @"C:\MinGW\bin\g++.exe",
+        @"C:\Program Files\mingw-w64\bin\g++.exe",
+        @"C:\msys64\mingw64\bin\g++.exe",
+        @"C:\msys64\ucrt64\bin\g++.exe",
+    ];
+
+    private static readonly string[] UnixFallbackPaths =
+    [
+        "/usr/bin/g++",
+        "/usr/local/bin/g++",
+        "/usr/bin/clang++",
+        "/usr/local/bin/clang++",
+    ];
+
+    private Task<IReadOnlyList<CompilerInfo>>? _compilerDiscovery;
+
+    public Task<IReadOnlyList<CompilerInfo>> FindAllCompilersAsync()
+        => _compilerDiscovery ??= DiscoverCompilersAsync();
 
     public async Task<CompileResult> CompileAsync(CompileOptions options)
     {
@@ -22,7 +49,7 @@ public class ProgramService : IProgramService
 
         try
         {
-            var compilers = FindAllCompilers();
+            var compilers = await FindAllCompilersAsync();
 
             CompilerInfo? compiler = null;
 
@@ -36,7 +63,7 @@ public class ProgramService : IProgramService
                     compiler = new CompilerInfo
                     {
                         Path = options.CompilerPath,
-                        Version = GetCompilerVersion(options.CompilerPath),
+                        Version = await GetCompilerVersionAsync(options.CompilerPath),
                         IsDefault = true
                     };
                 }
@@ -68,14 +95,11 @@ public class ProgramService : IProgramService
             }
 
             string fullSourcePath = Path.GetFullPath(options.CodePath);
-            string outputPath = GetOutputPath(fullSourcePath);
+            string outputPath = CompileArtifacts.GetExecutablePath(fullSourcePath);
             string workingDir = Path.GetDirectoryName(fullSourcePath) ?? string.Empty;
 
             var arguments = BuildCompileArguments(options, outputPath);
             result.FullCommand = $"{compiler.Path} {string.Join(" ", arguments)}";
-
-            Console.WriteLine($"[OutputPath] {outputPath}");
-            Console.WriteLine($"[FullCommand] {result.FullCommand}");
 
             using var process = new Process
             {
@@ -109,7 +133,10 @@ public class ProgramService : IProgramService
             }
             catch (OperationCanceledException)
             {
-                process.Kill(entireProcessTree: true);
+                TryKill(process);
+
+                result.Output = await TryReadAsync(outputTask);
+                result.Error = await TryReadAsync(errorTask);
                 result.IsSuccess = false;
                 result.ErrorType = CompileErrorType.InternalError;
                 result.ErrorMessage = "编译超时";
@@ -120,9 +147,6 @@ public class ProgramService : IProgramService
             result.ExitCode = process.ExitCode;
             result.Output = await outputTask;
             result.Error = await errorTask;
-
-            Console.WriteLine($"[stdout] {result.Output}");
-            Console.WriteLine($"[stderr] {result.Error}");
 
             if (process.ExitCode == 0 && File.Exists(outputPath))
             {
@@ -142,11 +166,12 @@ public class ProgramService : IProgramService
             }
 
             result.ElapsedMilliseconds = stopwatch.ElapsedMilliseconds;
-            LogCompileResult(result);
             return result;
         }
         catch (Exception ex)
         {
+            Trace.TraceError($"[ProgramService] 编译过程异常: {ex}");
+
             result.IsSuccess = false;
             result.ErrorType = CompileErrorType.InternalError;
             result.ErrorMessage = ex.Message;
@@ -156,78 +181,53 @@ public class ProgramService : IProgramService
         }
     }
 
-    public List<CompilerInfo> FindAllCompilers()
+    private static async Task<IReadOnlyList<CompilerInfo>> DiscoverCompilersAsync()
     {
-        var compilers = new List<CompilerInfo>();
-        var foundPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var paths = new List<string>();
 
+        var compilerNames = OperatingSystem.IsWindows() ? WindowsCompilerNames : UnixCompilerNames;
         var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
-        var pathDirs = pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
 
-        var compilerNames = OperatingSystem.IsWindows()
-            ? new[] { "g++.exe", "clang++.exe" }
-            : new[] { "g++", "clang++" };
-
-        foreach (var dir in pathDirs)
+        foreach (var dir in pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
         {
             foreach (var name in compilerNames)
             {
                 var fullPath = Path.Combine(dir, name);
-                if (File.Exists(fullPath) && foundPaths.Add(fullPath))
+                if (File.Exists(fullPath) && seen.Add(fullPath))
                 {
-                    compilers.Add(new CompilerInfo
-                    {
-                        Path = fullPath,
-                        Version = GetCompilerVersion(fullPath),
-                        IsDefault = compilers.Count == 0
-                    });
+                    paths.Add(fullPath);
                 }
             }
         }
 
-        if (compilers.Count == 0)
+        if (paths.Count == 0)
         {
-            string[] fallbackPaths;
-            if (OperatingSystem.IsWindows())
-            {
-                fallbackPaths = new[]
-                {
-                    @"C:\mingw64\bin\g++.exe",
-                    @"C:\MinGW\bin\g++.exe",
-                    @"C:\Program Files\mingw-w64\bin\g++.exe",
-                    @"C:\msys64\mingw64\bin\g++.exe",
-                    @"C:\msys64\ucrt64\bin\g++.exe"
-                };
-            }
-            else
-            {
-                fallbackPaths = new[]
-                {
-                    "/usr/bin/g++",
-                    "/usr/local/bin/g++",
-                    "/usr/bin/clang++",
-                    "/usr/local/bin/clang++"
-                };
-            }
-
+            var fallbackPaths = OperatingSystem.IsWindows() ? WindowsFallbackPaths : UnixFallbackPaths;
             foreach (var path in fallbackPaths)
             {
-                if (File.Exists(path) && foundPaths.Add(path))
+                if (File.Exists(path) && seen.Add(path))
                 {
-                    compilers.Add(new CompilerInfo
-                    {
-                        Path = path,
-                        Version = GetCompilerVersion(path),
-                        IsDefault = compilers.Count == 0
-                    });
+                    paths.Add(path);
                 }
             }
+        }
+
+        var compilers = new List<CompilerInfo>(paths.Count);
+        foreach (var path in paths)
+        {
+            compilers.Add(new CompilerInfo
+            {
+                Path = path,
+                Version = await GetCompilerVersionAsync(path),
+                IsDefault = compilers.Count == 0
+            });
         }
 
         return compilers;
     }
 
-    private string GetCompilerVersion(string compilerPath)
+    private static async Task<string> GetCompilerVersionAsync(string compilerPath)
     {
         try
         {
@@ -245,28 +245,66 @@ public class ProgramService : IProgramService
             };
 
             process.Start();
-            string output = process.StandardOutput.ReadToEnd();
-            if (!process.WaitForExit(CompilerVersionTimeoutMs))
+
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            _ = process.StandardError.ReadToEndAsync();
+
+            using var cts = new CancellationTokenSource(CompilerVersionTimeoutMs);
+            try
             {
-                process.Kill();
-                return "Unknown Version";
+                await process.WaitForExitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                TryKill(process);
+                return UnknownVersion;
             }
 
-            if (!string.IsNullOrWhiteSpace(output))
-            {
-                var firstLine = output
-                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                    .FirstOrDefault();
-                return firstLine?.Trim() ?? "Unknown Version";
-            }
+            var output = await outputTask;
+            if (string.IsNullOrWhiteSpace(output))
+                return UnknownVersion;
+
+            var firstLine = output
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault();
+
+            return firstLine?.Trim() ?? UnknownVersion;
         }
-        catch
+        catch (Exception ex)
         {
+            Trace.TraceError($"[ProgramService] 读取编译器版本失败 ({compilerPath}): {ex.Message}");
+            return UnknownVersion;
         }
-        return "Unknown Version";
     }
 
-    private List<string> BuildCompileArguments(CompileOptions options, string outputPath)
+    private static void TryKill(Process process)
+    {
+        try
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError($"[ProgramService] 结束编译器进程失败: {ex.Message}");
+        }
+    }
+
+    private static async Task<string> TryReadAsync(Task<string> readTask)
+    {
+        try
+        {
+            return await readTask;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static List<string> BuildCompileArguments(CompileOptions options, string outputPath)
     {
         var args = new List<string>
         {
@@ -300,14 +338,7 @@ public class ProgramService : IProgramService
         return args;
     }
 
-    private string GetOutputPath(string fullSourcePath)
-    {
-        return OperatingSystem.IsWindows()
-            ? Path.ChangeExtension(fullSourcePath, ".exe")
-            : Path.ChangeExtension(fullSourcePath, null);
-    }
-
-    private string GetStandardString(CppStandard standard)
+    private static string GetStandardString(CppStandard standard)
     {
         return standard switch
         {
@@ -328,17 +359,19 @@ public class ProgramService : IProgramService
         var log = new StringBuilder();
         log.Append($"[{DateTime.Now.ToLongTimeString()}] ");
 
-        if (!string.IsNullOrWhiteSpace(result.Error))
-        {
-            log.Append($"[{result.ErrorMessage}] ");
-            log.Append(result.Error);
-        }
-        else
+        if (result.IsSuccess)
         {
             log.Append("[编译成功] ");
         }
+        else
+        {
+            log.Append($"[{result.ErrorMessage}] ");
 
-        log.Append($"耗时: {result.ElapsedMilliseconds}ms\n");
+            if (!string.IsNullOrWhiteSpace(result.Error))
+                log.Append(result.Error);
+        }
+
+        log.Append($"耗时: {result.ElapsedMilliseconds}ms");
         return log.ToString();
     }
 }

@@ -1,35 +1,31 @@
-﻿using Zinc.Core.Abstractions;
-using Zinc.Core.Models;
-using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Text;
+using Zinc.Core.Abstractions;
+using Zinc.Core.Models;
+
+namespace Zinc.Core.Services;
 
 public class JudgeService : IJudgeService
 {
     private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
+    private const int KillWaitMilliseconds = 1000;
+
     private readonly IOutputComparer _outputComparer;
     private readonly IProcessMonitor _processMonitor;
 
-    public JudgeService(IOutputComparer outputComparer = null, IProcessMonitor processMonitor = null)
+    public JudgeService(IOutputComparer? outputComparer = null, IProcessMonitor? processMonitor = null)
     {
         _outputComparer = outputComparer ?? new OutputComparer();
         _processMonitor = processMonitor ?? new ProcessMonitor();
     }
 
-    public ExecutionResult Execute(ExecutionOptions options)
-    {
-        return ExecuteAsync(options).GetAwaiter().GetResult();
-    }
-
     public async Task<ExecutionResult> ExecuteAsync(ExecutionOptions options, CancellationToken cancellationToken = default)
     {
         if (!ValidateOptions(options))
-            return new ExecutionResult
-            {
-                Result = JudgeResult.CE
-            };
-        
+        {
+            return new ExecutionResult { Result = JudgeResult.CE };
+        }
 
         var result = new ExecutionResult
         {
@@ -37,7 +33,7 @@ public class JudgeService : IJudgeService
             Result = JudgeResult.UKE
         };
 
-        Process process = null;
+        Process? process = null;
         try
         {
             process = CreateProcess(options);
@@ -53,8 +49,7 @@ public class JudgeService : IJudgeService
             var monitorTask = _processMonitor.MonitorAsync(
                 process,
                 options.MemoryLimitMB * 1024L * 1024L,
-                cancellationToken
-            );
+                cancellationToken);
 
             bool completed = await WaitForExitAsync(process, options.TimeLimitMs, cancellationToken);
 
@@ -80,7 +75,7 @@ public class JudgeService : IJudgeService
 
             if (options.MemoryLimitMB > 0 && resourceUsage.MemoryLimitExceeded)
             {
-                result.Result = JudgeResult.RE;
+                result.Result = JudgeResult.MLE;
                 return result;
             }
 
@@ -108,8 +103,9 @@ public class JudgeService : IJudgeService
             result.Result = JudgeResult.TLE;
             return result;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Trace.TraceError($"[JudgeService] 运行被测程序失败: {ex}");
             result.Result = JudgeResult.RE;
             return result;
         }
@@ -119,21 +115,15 @@ public class JudgeService : IJudgeService
         }
     }
 
-    private bool ValidateOptions(ExecutionOptions options)
+    private static bool ValidateOptions(ExecutionOptions options)
     {
-        if (string.IsNullOrEmpty(options.ExecutablePath)){
-            Console.WriteLine(options.ExecutablePath);
+        if (string.IsNullOrEmpty(options.ExecutablePath))
             return false;
-        }
 
-        if (!File.Exists(options.ExecutablePath)){
-            Console.WriteLine(1);
-            return false;
-        }
-        return true;
+        return File.Exists(options.ExecutablePath);
     }
 
-    private Process CreateProcess(ExecutionOptions options)
+    private static Process CreateProcess(ExecutionOptions options)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -155,7 +145,7 @@ public class JudgeService : IJudgeService
         return new Process { StartInfo = startInfo };
     }
 
-    private async Task<string> ReadStreamAsync(Stream stream, Encoding encoding)
+    private static async Task<string> ReadStreamAsync(Stream stream, Encoding encoding)
     {
         try
         {
@@ -168,11 +158,12 @@ public class JudgeService : IJudgeService
         }
         catch (Exception ex)
         {
-            return ex.Message;
+            Trace.TraceError($"[JudgeService] 读取被测程序输出失败: {ex.Message}");
+            return string.Empty;
         }
     }
 
-    private async Task WriteInputAsync(Process process, string input, Encoding encoding)
+    private static async Task WriteInputAsync(Process process, string input, Encoding encoding)
     {
         if (string.IsNullOrEmpty(input))
         {
@@ -185,7 +176,7 @@ public class JudgeService : IJudgeService
         process.StandardInput.Close();
     }
 
-    private async Task<bool> WaitForExitAsync(Process process, int timeoutMs, CancellationToken cancellationToken)
+    private static async Task<bool> WaitForExitAsync(Process process, int timeoutMs, CancellationToken cancellationToken)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(timeoutMs);
@@ -201,129 +192,19 @@ public class JudgeService : IJudgeService
         }
     }
 
-    private void KillProcess(Process process)
+    private static void KillProcess(Process process)
     {
         try
         {
             if (!process.HasExited)
             {
-                process.Kill();
-                process.WaitForExit(1000);
+                process.Kill(entireProcessTree: true);
+                process.WaitForExit(KillWaitMilliseconds);
             }
         }
-        catch { }
-    }
-}
-
-public class OutputComparer : IOutputComparer
-{
-    public ComparisonResult Compare(string actual, string expected)
-    {
-        var result = new ComparisonResult();
-
-        var normalizedActual = NormalizeOutput(actual ?? string.Empty);
-        var normalizedExpected = NormalizeOutput(expected ?? string.Empty);
-
-        result.NormalizedActual = normalizedActual;
-        result.NormalizedExpected = normalizedExpected;
-
-        if (string.Equals(normalizedActual, normalizedExpected))
+        catch (Exception ex)
         {
-            result.IsMatch = true;
-            return result;
+            Trace.TraceError($"[JudgeService] 结束被测程序失败: {ex.Message}");
         }
-
-        if (string.Equals(normalizedActual.TrimEnd(), normalizedExpected.TrimEnd()))
-        {
-            result.IsMatch = true;
-            return result;
-        }
-
-        result.IsMatch = false;
-        var actualLines = normalizedActual.Split(new[] { '\n' }, StringSplitOptions.None);
-        var expectedLines = normalizedExpected.Split(new[] { '\n' }, StringSplitOptions.None);
-
-        int maxLines = Math.Max(actualLines.Length, expectedLines.Length);
-        for (int i = 0; i < maxLines; i++)
-        {
-            string actualLine = i < actualLines.Length ? actualLines[i] : "<EOF>";
-            string expectedLine = i < expectedLines.Length ? expectedLines[i] : "<EOF>";
-
-            if (actualLine != expectedLine)
-            {
-                result.Differences.Add(new Difference
-                {
-                    LineNumber = i + 1,
-                    Actual = actualLine,
-                    Expected = expectedLine,
-                });
-            }
-        }
-
-        if (result.Differences.Count == 0)
-        {
-            result.Differences.Add(new Difference
-            {
-                LineNumber = 0,
-                Actual = normalizedActual,
-                Expected = normalizedExpected,
-            });
-        }
-
-        return result;
-    }
-
-    private string NormalizeOutput(string text)
-    {
-        if (string.IsNullOrEmpty(text))
-            return string.Empty;
-
-        return text.Replace("\r\n", "\n").Replace("\r", "\n");
-    }
-}
-
-public class ProcessMonitor : IProcessMonitor
-{
-    public async Task<ResourceUsage> MonitorAsync(Process process, long memoryLimitBytes = 0, CancellationToken cancellationToken = default)
-    {
-        var usage = new ResourceUsage();
-
-        try
-        {
-            while (!process.HasExited && !cancellationToken.IsCancellationRequested)
-            {
-                try
-                {
-                    process.Refresh();
-
-                    usage.CpuTime = process.TotalProcessorTime;
-
-                    var memoryBytes = process.PeakWorkingSet64;
-                    if (memoryBytes > usage.PeakMemoryBytes)
-                    {
-                        usage.PeakMemoryBytes = memoryBytes;
-                    }
-
-                    usage.WorkingSetBytes = process.WorkingSet64;
-
-                    if (memoryLimitBytes > 0 && process.WorkingSet64 > memoryLimitBytes)
-                    {
-                        usage.MemoryLimitExceeded = true;
-                        break;
-                    }
-                }
-                catch (InvalidOperationException)
-                {
-                    break;
-                }
-
-                await Task.Delay(50, cancellationToken);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-        }
-
-        return usage;
     }
 }
