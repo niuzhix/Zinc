@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
-using Zinc.Abstractions;
 using Zinc.Core.Abstractions;
 using Zinc.Models;
 using Zinc.ViewModels;
+
+namespace Zinc.Abstractions;
 
 public interface IEditorViewModelFactory
 {

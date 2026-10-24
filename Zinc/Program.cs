@@ -19,8 +19,9 @@ internal sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        // Show Debug Console when debugging.
-        if (Debugger.IsAttached || args.Contains("--console"))
+        // Show Debug Console when debugging or explicitly requested with --console.
+        bool consoleVisible = Debugger.IsAttached || Array.IndexOf(args, "--console") >= 0;
+        if (consoleVisible)
         {
             ShowConsole();
         }
@@ -32,8 +33,8 @@ internal sealed class Program
         }
         finally
         {
-            // Hide Debug console when the application exit.
-            if (Debugger.IsAttached)
+            // Hide the console we opened on exit.
+            if (consoleVisible)
             {
                 HideConsole();
             }

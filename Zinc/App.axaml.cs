@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using FluentAvalonia.Styling;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 using Zinc.Abstractions;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
@@ -54,17 +55,14 @@ namespace Zinc
                 services.AddTransient<SPEditViewModel>();
                 services.AddTransient<SPCompileViewModel>();
                 services.AddTransient<SPAboutViewModel>();
-                services.AddTransient<EditorViewModel>();
 
                 Services = services.BuildServiceProvider();
 
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = ActivatorUtilities.CreateInstance<MainWindowViewModel>(App.Services)
-                };
+                // MainWindow 在自己的构造函数里从 Services 取 MainWindowViewModel 作为 DataContext，
+                // 这里再赋值一次会覆盖它并额外创建一个实例。
+                desktop.MainWindow = new MainWindow();
 
-                Theme = App.Current.Styles[0] as FluentAvaloniaTheme;
-                base.OnFrameworkInitializationCompleted();
+                Theme = App.Current.Styles.OfType<FluentAvaloniaTheme>().FirstOrDefault();
             }
 
             base.OnFrameworkInitializationCompleted();

@@ -4,7 +4,6 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks;
 using Zinc.Abstractions;
 using Zinc.Core.Abstractions;
@@ -21,17 +20,20 @@ namespace Zinc.ViewModels
         private readonly IDialogService _dialogservice;
 
         [ObservableProperty]
-        private MainViewModel _mainViewModel = ActivatorUtilities.CreateInstance<MainViewModel>(App.Services);
-        [ObservableProperty]
         private string _editorContent = string.Empty;
         [ObservableProperty]
         private string _currentFilePath = string.Empty;
 
-        public MainWindowViewModel(IFileService fileService, IDialogService dialogService, ISettingsService<AppSettings> settingsService)
+        public MainWindowViewModel(
+            IFileService fileService,
+            IDialogService dialogService,
+            ISettingsService<AppSettings> settingsService,
+            MainViewModel mainViewModel)
         {
             _fileservice = fileService;
             _dialogservice = dialogService;
             _settings = settingsService;
+            MainViewModel = mainViewModel;
             ApplyTheme();
             ApplyColor();
             _settings.SettingsChanged += (s, e) =>
@@ -40,6 +42,8 @@ namespace Zinc.ViewModels
                 ApplyColor();
             };
         }
+
+        public MainViewModel MainViewModel { get; }
 
         public AppSettings Settings => _settings.Current;
         public void SaveSettings() => _settings.Save();
