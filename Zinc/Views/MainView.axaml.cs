@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
-using Microsoft.Extensions.DependencyInjection;
 using Zinc.ViewModels;
 
 namespace Zinc.Views;
@@ -13,7 +12,6 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
-        DataContext = App.Services.GetRequiredService<MainViewModel>();
     }
 
     private void TabView_AddTabButtonClick(FATabView sender, System.EventArgs args)

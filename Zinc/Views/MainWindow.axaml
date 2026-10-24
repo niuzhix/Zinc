@@ -12,11 +12,7 @@
 		Title="Zinc"
 		Opacity="{Binding Settings.Opacity}">
 
-	<Design.DataContext>
-		<!-- This only sets the DataContext for the previewer in an IDE,
-		to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-		<vm:MainWindowViewModel/>
-	</Design.DataContext>
+	<!-- 预览器的绑定类型由 x:DataType 提供；运行时 DataContext 由构造函数从 App.Services 取得。 -->
 
-	<views:MainView/>
+	<views:MainView DataContext="{Binding MainViewModel}"/>
 </Window>
