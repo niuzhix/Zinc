@@ -35,34 +35,35 @@ namespace Zinc
 #if DEBUG
             LaunchDebugConsole();
 #endif
+            var services = new ServiceCollection();
+
+            services.AddSingleton<ISettingsService<AppSettings>>(
+                _ => new SettingsService<AppSettings>("Zinc"));
+
+            services.AddSingleton<IDialogService, DialogService>();
+            services.AddSingleton<IFileService, FileService>();
+            services.AddSingleton<IJudgeService, JudgeService>();
+            services.AddSingleton<IFormatService, FormatService>();
+            services.AddSingleton<IProgramService, ProgramService>();
+            services.AddSingleton<IEditorViewModelFactory, EditorViewModelFactory>();
+
+            services.AddSingleton<MainWindowViewModel>();
+            services.AddSingleton<MainViewModel>();
+            services.AddTransient<SettingsWindowViewModel>();
+            services.AddTransient<SPUIViewModel>();
+            services.AddTransient<SPEditViewModel>();
+            services.AddTransient<SPCompileViewModel>();
+            services.AddTransient<SPAboutViewModel>();
+
+            Services = services.BuildServiceProvider();
+
+            Theme = App.Current.Styles.OfType<FluentAvaloniaTheme>().FirstOrDefault();
+
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                var services = new ServiceCollection();
-
-                services.AddSingleton<ISettingsService<AppSettings>>(
-                    _ => new SettingsService<AppSettings>("Zinc"));
-
-                services.AddSingleton<IDialogService, DialogService>();
-                services.AddSingleton<IFileService, FileService>();
-                services.AddSingleton<IJudgeService, JudgeService>();
-                services.AddSingleton<IFormatService, FormatService>();
-                services.AddSingleton<IProgramService, ProgramService>(); 
-                services.AddSingleton<IEditorViewModelFactory, EditorViewModelFactory>();
-
-                services.AddSingleton<MainWindowViewModel>();
-                services.AddSingleton<MainViewModel>();
-                services.AddTransient<SPUIViewModel>();
-                services.AddTransient<SPEditViewModel>();
-                services.AddTransient<SPCompileViewModel>();
-                services.AddTransient<SPAboutViewModel>();
-
-                Services = services.BuildServiceProvider();
-
                 // MainWindow 在自己的构造函数里从 Services 取 MainWindowViewModel 作为 DataContext，
                 // 这里再赋值一次会覆盖它并额外创建一个实例。
                 desktop.MainWindow = new MainWindow();
-
-                Theme = App.Current.Styles.OfType<FluentAvaloniaTheme>().FirstOrDefault();
             }
 
             base.OnFrameworkInitializationCompleted();

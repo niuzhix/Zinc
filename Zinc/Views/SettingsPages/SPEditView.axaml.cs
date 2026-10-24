@@ -1,7 +1,4 @@
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-using Microsoft.Extensions.DependencyInjection;
-using Zinc.ViewModels;
+﻿using Avalonia.Controls;
 
 namespace Zinc.Views.SettingsPages;
 
@@ -10,6 +7,5 @@ public partial class SPEditView : UserControl
     public SPEditView()
     {
         InitializeComponent();
-        DataContext = App.Services.GetRequiredService<SPEditViewModel>();
     }
 }

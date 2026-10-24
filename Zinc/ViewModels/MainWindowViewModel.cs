@@ -1,10 +1,10 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Styling;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Zinc.Abstractions;
 using Zinc.Models;
 
-namespace Zinc;
+namespace Zinc.ViewModels;
 
 public class MainWindowViewModel : ObservableObject
 {
