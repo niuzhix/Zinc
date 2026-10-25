@@ -311,13 +311,13 @@ public class ProgramService : IProgramService
             options.CodePath,
             "-o", outputPath,
             $"-std={GetStandardString(options.StandardVersion)}",
-            options.enableO2 ? "-O2" : "-O0"
+            options.EnableO2 ? "-O2" : "-O0"
         };
 
-        if (options.enableGDB)
+        if (options.EnableGDB)
             args.Add("-g");
 
-        if (options.warningCheck)
+        if (options.WarningCheck)
         {
             args.Add("-Wall");
             args.Add("-Wextra");
@@ -326,7 +326,7 @@ public class ProgramService : IProgramService
             args.Add("-Wpedantic");
         }
 
-        if (options.overAddressCheck)
+        if (options.OverAddressCheck)
         {
             args.Add("-fsanitize=undefined");
             args.Add("-fsanitize=address");

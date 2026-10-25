@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Zinc.Abstractions;
 using Zinc.Core.Abstractions;
@@ -28,6 +29,7 @@ public partial class EditorViewModel : ObservableObject, IDisposable
     private const string UntitledName = "未标题";
     private const string DefaultExtension = ".cpp";
     private const string SaveDialogTitle = "选择保存文件位置";
+    private const int MaxLogLength = 1_000_000;
 
     private readonly IReadOnlyList<FileFilter> _filters =
     [
@@ -46,6 +48,7 @@ public partial class EditorViewModel : ObservableObject, IDisposable
     private readonly IFormatService _formatService;
 
     private TextEditor? _editor;
+    private readonly StringBuilder _logBuilder = new();
     private bool _autoFormatQueued;
 
     private static readonly TimeSpan AutoFormatDelay = TimeSpan.FromMilliseconds(400);
@@ -324,19 +327,31 @@ public partial class EditorViewModel : ObservableObject, IDisposable
 
         var executablePath = GetExecutablePath(FilePath);
         int passed = 0;
+        int judged = 0;
+        int skipped = 0;
 
         foreach (var tc in TestCases)
         {
             tc.Result = null;
-            if (IsIncomplete(tc)) continue;
 
+            if (IsIncomplete(tc))
+            {
+                skipped++;
+                continue;
+            }
+
+            judged++;
             var result = await RunTestCaseAsync(executablePath, tc);
             if (result.Result == JudgeResult.AC) passed++;
 
             LogTestResult(tc, result);
         }
 
-        AppendLog($"测试完成 通过 {passed}/{TestCases.Count}");
+        var summary = $"测试完成 通过 {passed}/{judged}";
+        if (skipped > 0)
+            summary += $"（跳过 {skipped} 个未填写输入或期望输出的测试点）";
+
+        AppendLog(summary);
     }
 
     [RelayCommand]
@@ -364,13 +379,13 @@ public partial class EditorViewModel : ObservableObject, IDisposable
 
     private CompileOptions BuildCompileOptions() => new()
     {
-        CodePath = FilePath,
+        CodePath = FilePath ?? string.Empty,
         CompilerPath = Settings.CompilerPath,
-        enableO2 = Settings.EnableO2,
-        enableGDB = Settings.EnableGDB,
+        EnableO2 = Settings.EnableO2,
+        EnableGDB = Settings.EnableGDB,
         StandardVersion = Settings.StandardVersion,
-        warningCheck = Settings.WarningCheck,
-        overAddressCheck = Settings.OverAddressCheck
+        WarningCheck = Settings.WarningCheck,
+        OverAddressCheck = Settings.OverAddressCheck
     };
 
     private static string GetExecutablePath(string codePath) =>
@@ -384,8 +399,8 @@ public partial class EditorViewModel : ObservableObject, IDisposable
         var options = new ExecutionOptions
         {
             ExecutablePath = executablePath,
-            StandardInput = tc.Input,
-            ExpectedOutput = tc.ExpectedOutput,
+            StandardInput = tc.Input ?? string.Empty,
+            ExpectedOutput = tc.ExpectedOutput ?? string.Empty,
             TimeLimitMs = DefaultTimeLimitMs,
             MemoryLimitMB = DefaultMemoryLimitMB
         };
@@ -523,7 +538,32 @@ public partial class EditorViewModel : ObservableObject, IDisposable
     {
         if (string.IsNullOrEmpty(text)) return;
 
-        Log += text.EndsWith('\n') ? text : text + Environment.NewLine;
+        if (!text.EndsWith('\n'))
+        {
+            text += Environment.NewLine;
+        }
+
+        if (_logBuilder.Length + text.Length > MaxLogLength)
+        {
+            TrimLog();
+        }
+
+        _logBuilder.Append(text);
+        Log = _logBuilder.ToString();
+    }
+
+    /// <summary>丢弃前一半日志（按行边界），避免长时间运行后内存与字符串复制失控。</summary>
+    private void TrimLog()
+    {
+        var retained = _logBuilder.ToString();
+        var start = Math.Max(0, retained.Length - MaxLogLength / 2);
+        var lineBreak = retained.IndexOf('\n', start);
+        if (lineBreak >= 0)
+        {
+            start = lineBreak + 1;
+        }
+
+        _logBuilder.Clear().Append(retained[start..]);
     }
 
     private void LogTestResult(TestCase tc, ExecutionResult result)
@@ -553,12 +593,12 @@ internal static class TextInputHelper
     private static readonly HashSet<char> ClosingChars = new() { ')', ']', '}', '"', '\'' };
 
     /// <summary>
-    /// 处理括号/引号输入。返回 true 表示输入已处理，调用方应直接 return。
+    /// 处理括号与引号的自动配对。返回 <c>true</c> 表示按键已被消费，调用方不应再处理。
     /// </summary>
     public static bool TryHandleBracket(
         TextArea textArea, TextDocument doc, int offset, char input, TextInputEventArgs e)
     {
-        // 1. 有选中内容：用括号对包裹
+        // 有选区时用成对符号包裹选区，光标落在闭合符号之后。
         if (textArea.Selection.Length > 0 && BracketPairs.TryGetValue(input, out char pairClose))
         {
             var segment = textArea.Selection.SurroundingSegment;
@@ -572,7 +612,7 @@ internal static class TextInputHelper
             }
         }
 
-        // 2. 纯闭字符 ) ] }：后面就是它自己 → 跳过
+        // 闭符号：紧随其后的是同一字符时只移动光标，不再重复插入。
         if (ClosingChars.Contains(input) && !IsQuote(input))
         {
             if (offset < doc.TextLength && doc.GetCharAt(offset) == input)
@@ -580,13 +620,13 @@ internal static class TextInputHelper
                 textArea.Caret.Offset = offset + 1;
                 e.Handled = true;
             }
+
             return true;
         }
 
-        // 3. 开字符 ( [ { 与引号
         if (BracketPairs.TryGetValue(input, out char closing))
         {
-            // 引号后面已是同一个引号 → 跳过
+            // 引号后面已是同一个引号时同样只移动光标。
             if (IsQuote(input)
                 && offset < doc.TextLength
                 && doc.GetCharAt(offset) == input)
@@ -596,11 +636,10 @@ internal static class TextInputHelper
                 return true;
             }
 
-            // 引号紧跟单词字符 → 不配对，按普通输入处理
+            // 紧跟在标识符后的引号按普通字符输入，不做配对。
             if (IsQuote(input) && offset > 0 && IsWordChar(doc.GetCharAt(offset - 1)))
                 return false;
 
-            // 插入配对闭字符，光标留原位
             doc.Insert(offset, closing.ToString());
             textArea.Caret.Offset = offset;
             return true;
@@ -615,8 +654,8 @@ internal static class TextInputHelper
     public static bool TryAutoIndentOnBrace(
         TextArea textArea, TextDocument doc, int offset, TextInputEventArgs e)
     {
-        bool isNewLine = e.Text is "\n" or "\r" or "\r\n";
-        if (!isNewLine || offset <= 0) return false;
+        if (e.Text is not { } newline || offset <= 0) return false;
+        if (newline is not ("\n" or "\r" or "\r\n")) return false;
         if (doc.GetCharAt(offset - 1) != '{') return false;
 
         var line = doc.GetLineByOffset(offset - 1);
@@ -627,7 +666,6 @@ internal static class TextInputHelper
 
         string baseIndent = doc.GetText(line.Offset, indentEnd - line.Offset);
         string childIndent = baseIndent + textArea.Options.IndentationString;
-        string newline = e.Text;
 
         // 跳过光标后的空白，检查是否紧跟 '}'
         int probe = offset;

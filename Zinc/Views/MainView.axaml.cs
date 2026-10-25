@@ -1,20 +1,18 @@
 using Avalonia.Controls;
-using Avalonia.Interactivity;
 using FluentAvalonia.UI.Controls;
+using System;
 using Zinc.ViewModels;
 
 namespace Zinc.Views;
 
 public partial class MainView : UserControl
 {
-    private Window? _settingsWindow;
-
     public MainView()
     {
         InitializeComponent();
     }
 
-    private void TabView_AddTabButtonClick(FATabView sender, System.EventArgs args)
+    private void TabView_AddTabButtonClick(FATabView sender, EventArgs args)
     {
         if (DataContext is MainViewModel vm)
         {
@@ -28,28 +26,5 @@ public partial class MainView : UserControl
         {
             vm.CloseTab(editor);
         }
-    }
-
-    private void Settings_Click(object? sender, RoutedEventArgs e)
-    {
-        if (_settingsWindow is null)
-        {
-            _settingsWindow = new SettingsWindow();
-            _settingsWindow.Closing += SettingsWindow_Closing;
-            _settingsWindow.Show(TopLevel.GetTopLevel(this) as Window);
-        }
-        else
-        {
-            _settingsWindow.Activate();
-        }
-    }
-
-    private void SettingsWindow_Closing(object? sender, WindowClosingEventArgs e)
-    {
-        if (sender is Window window)
-        {
-            window.Closing -= SettingsWindow_Closing;
-        }
-        _settingsWindow = null;
     }
 }

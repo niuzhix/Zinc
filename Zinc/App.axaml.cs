@@ -23,7 +23,8 @@ namespace Zinc
 
         public static FluentAvaloniaTheme? Theme { get; private set; }
 
-        public static string? AppVersion { get; set; }
+        /// <summary>应用版本号，供“关于”页显示。</summary>
+        public static string AppVersion { get; } = GetVersion();
 
         public override void Initialize()
         {
@@ -46,6 +47,7 @@ namespace Zinc
             services.AddSingleton<IFormatService, FormatService>();
             services.AddSingleton<IProgramService, ProgramService>();
             services.AddSingleton<IEditorViewModelFactory, EditorViewModelFactory>();
+            services.AddSingleton<IWindowService, WindowService>();
 
             services.AddSingleton<MainWindowViewModel>();
             services.AddSingleton<MainViewModel>();
@@ -57,7 +59,7 @@ namespace Zinc
 
             Services = services.BuildServiceProvider();
 
-            Theme = App.Current.Styles.OfType<FluentAvaloniaTheme>().FirstOrDefault();
+            Theme = Current?.Styles.OfType<FluentAvaloniaTheme>().FirstOrDefault();
 
             // 启动时一次性校正持久化的编辑器字体，避免各消费方拿到不可用的字体。
             EditorFontResolver.EnsureUsable(
@@ -65,9 +67,10 @@ namespace Zinc
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // MainWindow 在自己的构造函数里从 Services 取 MainWindowViewModel 作为 DataContext，
-                // 这里再赋值一次会覆盖它并额外创建一个实例。
-                desktop.MainWindow = new MainWindow();
+                desktop.MainWindow = new MainWindow
+                {
+                    DataContext = Services.GetRequiredService<MainWindowViewModel>()
+                };
 
                 // 设置写入是防抖的，退出时释放容器以冲刷尚未落盘的改动。
                 desktop.Exit += (_, _) => (Services as IDisposable)?.Dispose();
@@ -88,18 +91,18 @@ namespace Zinc
 	 ╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝
 			");
             Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine($"    Zinc Editor v{GetVersion()}\n");
+            Console.WriteLine($"    Zinc Editor v{AppVersion}\n");
             Console.WriteLine($"Start time:    {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             Console.WriteLine($"Platform:      {Environment.OSVersion.Platform}");
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Debug console started.\n");
             Console.ForegroundColor = ConsoleColor.White;
         }
+
         private static string GetVersion()
         {
-            var version = typeof(Program).Assembly.GetName().Version;
-            AppVersion = version?.ToString() ?? "1.0.0";
-            return AppVersion;
+            var version = typeof(App).Assembly.GetName().Version;
+            return version?.ToString() ?? "1.0.0";
         }
     }
 }

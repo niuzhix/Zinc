@@ -1,28 +1,30 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Zinc.Core.Models;
-using Zinc.Models;
 
 namespace Zinc.Models;
 
+/// <summary>一个测试点：输入、期望输出与最近一次评测的观测值。</summary>
 public partial class TestCase : ObservableObject
 {
-    public int Index { get; set; }
+    /// <summary>从 1 开始的序号，删除测试点后由 <c>EditorViewModel</c> 重排。</summary>
+    [ObservableProperty]
+    private int _index;
 
     [ObservableProperty]
-    private string? input;
+    private string? _input;
 
     [ObservableProperty]
-    private string? expectedOutput;
+    private string? _expectedOutput;
 
     [ObservableProperty]
-    private string? actualOutput;
+    private string? _actualOutput;
 
     [ObservableProperty]
-    private string? errorOutput;
+    private string? _errorOutput;
 
     [ObservableProperty]
-    private JudgeResult? result;
+    private JudgeResult? _result;
 
     [ObservableProperty]
-    private double executionTimeMs;
+    private double _executionTimeMs;
 }

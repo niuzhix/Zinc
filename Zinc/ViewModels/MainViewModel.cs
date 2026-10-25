@@ -17,6 +17,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private readonly IFileService _fileService;
     private readonly IEditorViewModelFactory _editorFactory;
+    private readonly IWindowService _windowService;
 
     private readonly IReadOnlyList<FileFilter> _filters =
     [
@@ -33,17 +34,19 @@ public partial class MainViewModel : ObservableObject
     public MainViewModel(
         IDialogService dialogService,
         IFileService fileService,
-        IEditorViewModelFactory editorFactory)
+        IEditorViewModelFactory editorFactory,
+        IWindowService windowService)
     {
         _dialogService = dialogService;
         _fileService = fileService;
         _editorFactory = editorFactory;
+        _windowService = windowService;
 
         AddNewTab();
     }
 
-    // ====== 标签管理 ======
 
+    /// <summary>新建一个空白标签页并选中。</summary>
     [RelayCommand]
     public void AddNewTab()
     {
@@ -53,6 +56,7 @@ public partial class MainViewModel : ObservableObject
         SelectedItem = vm;
     }
 
+    /// <summary>关闭标签页；关闭最后一个标签页时自动补一个空白页。</summary>
     public void CloseTab(EditorViewModel vm)
     {
         Tabs.Remove(vm);
@@ -66,7 +70,9 @@ public partial class MainViewModel : ObservableObject
         SelectedItem = Tabs.FirstOrDefault();
     }
 
-    // ====== 文件命令 ======
+
+    [RelayCommand]
+    private void OpenSettings() => _windowService.ShowSettings();
 
     [RelayCommand]
     private async Task OpenAsync()
@@ -75,7 +81,7 @@ public partial class MainViewModel : ObservableObject
         if (string.IsNullOrEmpty(filePath))
             return;
 
-        // 已打开则直接切换
+        // 同一文件只保留一个标签页，已打开时直接切换。
         var existing = Tabs.FirstOrDefault(t =>
             string.Equals(t.FilePath, filePath, StringComparison.OrdinalIgnoreCase));
         if (existing is not null)

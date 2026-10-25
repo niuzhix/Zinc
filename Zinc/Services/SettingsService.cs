@@ -20,7 +20,6 @@ public class SettingsService<T> : ISettingsService<T>, IDisposable
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly object _sync = new();
     private T _current;
-    private bool _isLoading;
     private bool _disposed;
     private string? _pendingJson;
     private Timer? _saveTimer;
@@ -54,49 +53,6 @@ public class SettingsService<T> : ISettingsService<T>, IDisposable
         _current.PropertyChanged += OnSettingsPropertyChanged;
     }
 
-    /// <summary>立即把当前设置写入磁盘，并取消已排队的延迟写入。</summary>
-    public void Save()
-    {
-        string json;
-        try
-        {
-            json = JsonSerializer.Serialize(_current, _jsonOptions);
-        }
-        catch (Exception ex)
-        {
-            Log("序列化设置失败", ex);
-            return;
-        }
-
-        lock (_sync)
-        {
-            _pendingJson = null;
-            WriteFile(json);
-        }
-    }
-
-    public void Reload()
-    {
-        lock (_sync)
-        {
-            _isLoading = true;
-            try
-            {
-                _current.PropertyChanged -= OnSettingsPropertyChanged;
-                _current = Load();
-                _current.PropertyChanged += OnSettingsPropertyChanged;
-            }
-            finally
-            {
-                _isLoading = false;
-            }
-        }
-
-        SettingsChanged?.Invoke(
-            this,
-            new SettingsChangedEventArgs<T>(_current, propertyName: null));
-    }
-
     private T Load()
     {
         try
@@ -119,9 +75,6 @@ public class SettingsService<T> : ISettingsService<T>, IDisposable
 
     private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (_isLoading)
-            return;
-
         QueueSave();
         SettingsChanged?.Invoke(
             this,

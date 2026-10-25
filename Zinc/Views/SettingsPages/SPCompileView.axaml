@@ -33,15 +33,13 @@
                                              Header="C++编译标准"
                                              Description="编译源代码所使用的ISO标准。推荐值为C++14。">
                     <controls:FASettingsExpander.Footer>
-                        <ComboBox SelectedItem="{Binding Settings.StandardVersion}">
-                            <x:Static Member="models:CppStandard.Cpp98"/>
-                            <x:Static Member="models:CppStandard.Cpp03"/>
-                            <x:Static Member="models:CppStandard.Cpp11"/>
-                            <x:Static Member="models:CppStandard.Cpp14"/>
-                            <x:Static Member="models:CppStandard.Cpp17"/>
-                            <x:Static Member="models:CppStandard.Cpp20"/>
-                            <x:Static Member="models:CppStandard.Cpp23"/>
-                            <x:Static Member="models:CppStandard.Cpp26"/>
+                        <ComboBox ItemsSource="{Binding StandardOptions}"
+                                  SelectedItem="{Binding SelectedStandard}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CppStandardOption">
+                                    <TextBlock Text="{Binding DisplayName}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
                         </ComboBox>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>

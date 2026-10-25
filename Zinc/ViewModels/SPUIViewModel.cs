@@ -26,7 +26,7 @@ public partial class SPUIViewModel : ObservableObject
     }
 
     [ObservableProperty]
-    private string testText =
+    private string _testText =
         "#include <bits/stdc++.h>\nusing namespace std;\nint main(){\n    //处理逻辑\n    return 0;\n}";
 
     public AppSettings Settings => _settingsService.Current;

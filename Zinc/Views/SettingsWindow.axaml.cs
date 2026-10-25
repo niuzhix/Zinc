@@ -1,6 +1,5 @@
 ﻿using FluentAvalonia.UI.Controls;
 using FluentAvalonia.UI.Windowing;
-using Microsoft.Extensions.DependencyInjection;
 using Zinc.ViewModels;
 
 namespace Zinc.Views;
@@ -10,7 +9,6 @@ public partial class SettingsWindow : FAAppWindow
     public SettingsWindow()
     {
         InitializeComponent();
-        DataContext = App.Services.GetRequiredService<SettingsWindowViewModel>();
         TitleBar.Height = 48;
     }
 

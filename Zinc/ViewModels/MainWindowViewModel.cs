@@ -35,11 +35,12 @@ public class MainWindowViewModel : ObservableObject
     {
         if (Application.Current is not null)
         {
-            Application.Current.RequestedThemeVariant = (Settings.Theme == 2)
-                ? ThemeVariant.Dark
-                : (Settings.Theme == 1)
-                ? ThemeVariant.Light
-                : ThemeVariant.Default;
+            Application.Current.RequestedThemeVariant = Settings.Theme switch
+            {
+                AppSettings.ThemeDark => ThemeVariant.Dark,
+                AppSettings.ThemeLight => ThemeVariant.Light,
+                _ => ThemeVariant.Default
+            };
         }
     }
 

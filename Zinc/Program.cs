@@ -19,7 +19,7 @@ internal sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        // Show Debug Console when debugging or explicitly requested with --console.
+        // 调试时或显式传入 --console 时显示控制台窗口。
         bool consoleVisible = Debugger.IsAttached || Array.IndexOf(args, "--console") >= 0;
         if (consoleVisible)
         {
@@ -33,7 +33,7 @@ internal sealed class Program
         }
         finally
         {
-            // Hide the console we opened on exit.
+            // 退出时隐藏本次打开的控制台窗口。
             if (consoleVisible)
             {
                 HideConsole();
@@ -41,7 +41,7 @@ internal sealed class Program
         }
     }
 
-    // Avalonia configuration, don't remove; also used by visual designer.
+    // Avalonia 启动配置；可视化设计器也会调用，请勿删除。
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
            .UsePlatformDetect()

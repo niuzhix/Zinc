@@ -2,8 +2,9 @@
 using AvaloniaEdit;
 using Zinc.ViewModels;
 
-namespace Zinc.Core.Views;
+namespace Zinc.Views;
 
+/// <summary>把 <see cref="EditorViewModel"/> 与 <see cref="TextEditor"/> 关联起来的附加属性。</summary>
 public static class EditorBinding
 {
     public static readonly AttachedProperty<EditorViewModel?> HostProperty =
@@ -19,14 +20,14 @@ public static class EditorBinding
     {
         HostProperty.Changed.AddClassHandler<TextEditor>((editor, e) =>
         {
-            if (e.OldValue is EditorViewModel oldVm)
+            if (e.OldValue is EditorViewModel oldViewModel)
             {
-                oldVm.DetachEditor(editor);
+                oldViewModel.DetachEditor(editor);
             }
 
-            if (e.NewValue is EditorViewModel newVm)
+            if (e.NewValue is EditorViewModel newViewModel)
             {
-                newVm.AttachEditor(editor);
+                newViewModel.AttachEditor(editor);
             }
         });
     }

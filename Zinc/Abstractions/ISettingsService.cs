@@ -9,10 +9,6 @@ public interface ISettingsService<T>
     T Current { get; }
 
     event EventHandler<SettingsChangedEventArgs<T>>? SettingsChanged;
-
-    void Save();
-
-    void Reload();
 }
 
 public class SettingsChangedEventArgs<T> : EventArgs

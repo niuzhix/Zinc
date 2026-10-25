@@ -1,5 +1,6 @@
 ﻿namespace Zinc.Core.Models;
 
+/// <summary>一次编译的结果。</summary>
 public class CompileResult
 {
     public bool IsSuccess { get; set; }
@@ -21,6 +22,7 @@ public class CompileResult
     public string ErrorMessage { get; set; } = string.Empty;
 }
 
+/// <summary>一个被发现的编译器及其版本信息。</summary>
 public class CompilerInfo
 {
     public string Path { get; set; } = string.Empty;

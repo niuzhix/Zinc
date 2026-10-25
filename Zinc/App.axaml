@@ -1,17 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
-             xmlns:controls="using:FluentAvalonia.UI.Controls"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 x:Class="Zinc.App"
-			 xmlns:local="using:Zinc"
-			 xmlns:sty="using:FluentAvalonia.Styling"
-             xmlns:views="using:Zinc.Views"
-             xmlns:vm="using:Zinc.ViewModels"
-			 xmlns:windowing="using:FluentAvalonia.UI.Windowing">
-
-
-	<Application.DataTemplates>
-		<local:ViewLocator/>
-	</Application.DataTemplates>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Zinc.App"
+             xmlns:sty="using:FluentAvalonia.Styling">
 
 	<Application.Resources>
 		<FontFamily x:Key="HarmonyOsSans">

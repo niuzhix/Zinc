@@ -2,15 +2,11 @@
 using Avalonia.Platform.Storage;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Zinc.Abstractions;
 using Zinc.Models;
-using static System.Net.WebRequestMethods;
 
-namespace Zinc.Core.Services;
+namespace Zinc.Services;
 
 public class DialogService : IDialogService
 {
@@ -25,38 +21,38 @@ public class DialogService : IDialogService
     {
         var window = GetOwner();
         if (window is null) return null;
-        var storage = window.StorageProvider;
-        var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions()
+
+        var files = await window.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "选择要打开的文件...",
+            Title = title,
+            AllowMultiple = false,
             FileTypeFilter = ConvertFilters(filters)
         });
-        if (files.Count > 0)
-        {
-            return files[0].Path.LocalPath;
-        }
-        else
-        {
-            return null;
-        }
+
+        return files.Count > 0 ? files[0].TryGetLocalPath() : null;
     }
 
-    public async Task<string?> SaveFilePathAsync(string title, string defaultFileName = "", string defaultExtension = "", IReadOnlyList<FileFilter>? filters = null)
+    public async Task<string?> SaveFilePathAsync(
+        string title,
+        string defaultFileName = "",
+        string defaultExtension = "",
+        IReadOnlyList<FileFilter>? filters = null)
     {
         var window = GetOwner();
         if (window is null) return null;
-        var storage = window.StorageProvider;
-        var files = await storage.SaveFilePickerAsync(new FilePickerSaveOptions()
+
+        var file = await window.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "选择要打开的文件...",
+            Title = title,
             DefaultExtension = defaultExtension,
             SuggestedFileName = defaultFileName,
             FileTypeChoices = ConvertFilters(filters)
         });
-        return files?.Path.LocalPath;
+
+        return file?.TryGetLocalPath();
     }
 
-    private List<FilePickerFileType>? ConvertFilters(IReadOnlyList<FileFilter>? filters)
+    private static List<FilePickerFileType>? ConvertFilters(IReadOnlyList<FileFilter>? filters)
     {
         if (filters is null || filters.Count == 0) return null;
 
@@ -67,6 +63,7 @@ public class DialogService : IDialogService
         }).ToList();
     }
 
+    /// <summary>找不到显式 owner 时退回主窗口。</summary>
     private Window? GetOwner()
     {
         if (_owner is not null) return _owner;

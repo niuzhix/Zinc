@@ -31,11 +31,11 @@
 			  Grid.Column="0"
 			  WindowDecorationProperties.ElementRole="User">
 			<MenuItem Header="文件(_F)">
-				<MenuItem Header="打开...(_O)" Command="{Binding OpenCommand}" InputGesture="Ctrl+O" HotKey="Ctrl+O"/>
-				<MenuItem Header="保存...(_S)" Command="{Binding SaveCurrentTabCommand}" InputGesture="Ctrl+S" HotKey="Ctrl+S"/>
-				<MenuItem Header="另存为...(_A)" Command="{Binding SaveAsCurrentTabCommand}" InputGesture="Ctrl+Shift+S" HotKey="Ctrl+Shift+S"/>
+				<MenuItem Header="打开...(_O)" Command="{Binding OpenCommand}" HotKey="Ctrl+O"/>
+				<MenuItem Header="保存...(_S)" Command="{Binding SaveCurrentTabCommand}" HotKey="Ctrl+S"/>
+				<MenuItem Header="另存为...(_A)" Command="{Binding SaveAsCurrentTabCommand}" HotKey="Ctrl+Shift+S"/>
 			</MenuItem>
-			<MenuItem Header="设置...(_I)" Click="Settings_Click" InputGesture="Ctrl+I" HotKey="Ctrl+I"/>
+			<MenuItem Header="设置...(_I)" Command="{Binding OpenSettingsCommand}" HotKey="Ctrl+I"/>
 		</Menu> 
 		<ui:FATabView Name="TabView"
               Grid.Row="1"

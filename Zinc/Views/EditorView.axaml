@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:models="using:Zinc.Models"
-             xmlns:views="using:Zinc.Core.Views"
+             xmlns:views="using:Zinc.Views"
              xmlns:vm="using:Zinc.ViewModels"
              xmlns:convert="using:Zinc.Converters"
              xmlns:edit="https://github.com/avaloniaui/avaloniaedit"

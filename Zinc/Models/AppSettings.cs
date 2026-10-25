@@ -6,11 +6,9 @@ using Zinc.Core.Models;
 
 namespace Zinc.Models;
 
+/// <summary>提供 <see cref="INotifyPropertyChanged"/> 实现的轻量基类。</summary>
 public abstract class ObservableObjects : INotifyPropertyChanged
 {
-
-    private readonly Dictionary<string, ObservableObjects> _childObjects = [];
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected bool SetProperty<T>(
@@ -21,62 +19,27 @@ public abstract class ObservableObjects : INotifyPropertyChanged
         if (EqualityComparer<T>.Default.Equals(field, value))
             return false;
 
-        if (field is ObservableObjects oldChild && propertyName is not null)
-        {
-            UnsubscribeChild(propertyName, oldChild);
-        }
-
         field = value;
-
-        if (value is ObservableObjects newChild && propertyName is not null)
-        {
-            SubscribeChild(propertyName, newChild);
-        }
-
         OnPropertyChanged(propertyName);
         return true;
     }
 
-    protected void SubscribeChild(string propertyName, ObservableObjects child)
-    {
-        if (propertyName is null || child is null)
-            return;
-
-        child.PropertyChanged -= OnChildPropertyChanged;
-        child.PropertyChanged += OnChildPropertyChanged;
-        _childObjects[propertyName] = child;
-    }
-
-    protected void UnsubscribeChild(string propertyName, ObservableObjects child)
-    {
-        if (propertyName is null || child is null)
-            return;
-
-        child.PropertyChanged -= OnChildPropertyChanged;
-        _childObjects.Remove(propertyName);
-    }
-
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-    private void OnChildPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        foreach (var pair in _childObjects)
-        {
-            if (ReferenceEquals(pair.Value, sender))
-            {
-                PropertyChanged?.Invoke(
-                    this,
-                    new PropertyChangedEventArgs($"{pair.Key}.{e.PropertyName}"));
-                break;
-            }
-        }
-    }
 }
 
 public class AppSettings : ObservableObjects
 {
-    private int _theme = 0;
+    /// <summary>跟随系统主题。</summary>
+    public const int ThemeSystem = 0;
+
+    /// <summary>强制明亮主题。</summary>
+    public const int ThemeLight = 1;
+
+    /// <summary>强制黑暗主题。</summary>
+    public const int ThemeDark = 2;
+
+    private int _theme = ThemeSystem;
     private bool _isCustomThemeColorEnabled = false;
     private Color _themeColor;
     private double _opacity = 1;
