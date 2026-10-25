@@ -1,9 +1,8 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using Zinc.Core.Abstractions;
 
@@ -12,6 +11,10 @@ namespace Zinc.Core.Services;
 public sealed class FormatService : IFormatService
 {
     private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
+    private const string DefaultStyle = "file";
+    private const string AssumeFileName = "temp.cpp";
+
     private readonly string? _path;
     private readonly string? _initError;
 
@@ -29,23 +32,23 @@ public sealed class FormatService : IFormatService
             EnsureExecutable(_path);
         }
 
-        if (!File.Exists(_path))
+        if (_path is null)
+            _initError = $"当前平台不支持调用 clang-format: {RuntimeInformation.RuntimeIdentifier}";
+        else if (!File.Exists(_path))
             _initError = $"clang-format 不存在: {_path}";
     }
 
-    public async Task<FormatResult> FormatAsync(string sourceCode, string style = "file", int offset = -1)
+    public async Task<FormatResult> FormatAsync(string sourceCode, string style = DefaultStyle, int offset = -1)
     {
-        if (_initError != null)
+        if (_initError is not null)
             return FormatResult.Fail(_initError);
 
         var effectiveOffset = offset >= 0 && offset <= sourceCode.Length ? offset : 0;
-        var byteOffset = Encoding.UTF8.GetByteCount(sourceCode.AsSpan(0, effectiveOffset));
-        var args = $"--style={style} --assume-filename=temp.cpp --cursor={byteOffset} -output-replacements-xml";
+        var byteOffset = Utf8NoBom.GetByteCount(sourceCode.AsSpan(0, effectiveOffset));
 
         var psi = new ProcessStartInfo
         {
             FileName = _path,
-            Arguments = args,
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -56,71 +59,124 @@ public sealed class FormatService : IFormatService
             StandardErrorEncoding = Utf8NoBom
         };
 
+        psi.ArgumentList.Add($"--style={style}");
+        psi.ArgumentList.Add($"--assume-filename={AssumeFileName}");
+        psi.ArgumentList.Add($"--cursor={byteOffset.ToString(CultureInfo.InvariantCulture)}");
+        psi.ArgumentList.Add("-output-replacements-xml");
+
         try
         {
             using var process = new Process { StartInfo = psi };
             process.Start();
 
+            // 先挂上两路读取，再写输入，避免 stderr 填满管道造成互等。
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
+
             await process.StandardInput.WriteAsync(sourceCode);
             process.StandardInput.Close();
 
-            var xml = await process.StandardOutput.ReadToEndAsync();
-            var error = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
+
+            var xml = await outputTask;
+            var error = await errorTask;
 
             if (process.ExitCode != 0)
                 return FormatResult.Fail($"clang-format 执行失败: {error}");
 
-            return ApplyReplacements(sourceCode, xml);
+            return ApplyReplacements(sourceCode, xml, effectiveOffset);
         }
         catch (Exception ex)
         {
+            Trace.TraceError($"[FormatService] 调用 clang-format 失败: {ex}");
             return FormatResult.Fail($"调用 clang-format 出错: {ex.Message}");
         }
     }
 
-    private static FormatResult ApplyReplacements(string source, string xml)
+    private static FormatResult ApplyReplacements(string source, string xml, int fallbackCursor)
     {
         if (string.IsNullOrWhiteSpace(xml))
-            return FormatResult.Ok(source, 0);
+            return FormatResult.Ok(source, fallbackCursor);
+
+        XmlDocument document;
+        try
+        {
+            document = new XmlDocument();
+            document.LoadXml(xml);
+        }
+        catch (XmlException ex)
+        {
+            return FormatResult.Fail($"解析 clang-format 输出失败: {ex.Message}");
+        }
+
+        if (document.DocumentElement is not { } root)
+            return FormatResult.Fail("clang-format 输出为空。");
 
         var replacements = new List<(int Offset, int Length, byte[] NewText)>();
         var cursorByte = 0;
-
-        var doc = new XmlDocument();
-        doc.LoadXml(xml);
-
-        var root = doc.DocumentElement;
-        if (root == null)
-            return FormatResult.Fail("clang-format 输出为空。");
+        var hasCursor = false;
 
         foreach (XmlNode node in root.ChildNodes)
         {
             switch (node.Name)
             {
                 case "replacement":
-                    var offset = int.Parse(node.Attributes!["offset"]!.Value);
-                    var length = int.Parse(node.Attributes!["length"]!.Value);
-                    replacements.Add((offset, length, Encoding.UTF8.GetBytes(node.InnerText)));
+                    if (!TryReadByteRange(node, out var offset, out var length))
+                        return FormatResult.Fail("clang-format 输出的替换区间无效。");
+
+                    replacements.Add((offset, length, Utf8NoBom.GetBytes(node.InnerText)));
                     break;
+
                 case "cursor":
-                    cursorByte = int.Parse(node.InnerText);
+                    hasCursor = int.TryParse(node.InnerText, NumberStyles.Integer, CultureInfo.InvariantCulture, out cursorByte);
                     break;
             }
         }
 
-        var buffer = new List<byte>(Encoding.UTF8.GetBytes(source));
+        var buffer = new List<byte>(Utf8NoBom.GetBytes(source));
         foreach (var (offset, length, newText) in replacements.OrderByDescending(r => r.Offset))
         {
+            if (offset < 0 || offset + length > buffer.Count)
+                return FormatResult.Fail("clang-format 输出的替换区间超出源文本范围。");
+
             buffer.RemoveRange(offset, length);
             buffer.InsertRange(offset, newText);
         }
 
         var resultBytes = buffer.ToArray();
-        var result = Encoding.UTF8.GetString(resultBytes);
-        var cursorChar = Encoding.UTF8.GetCharCount(resultBytes, 0, Math.Min(cursorByte, resultBytes.Length));
+        var result = Utf8NoBom.GetString(resultBytes);
+        var cursor = hasCursor
+            ? ByteOffsetToCharIndex(resultBytes, cursorByte)
+            : fallbackCursor;
 
-        return FormatResult.Ok(result, cursorChar);
+        return FormatResult.Ok(result, cursor);
+    }
+
+    private static bool TryReadByteRange(XmlNode node, out int offset, out int length)
+    {
+        offset = 0;
+        length = 0;
+
+        var offsetText = node.Attributes?["offset"]?.Value;
+        var lengthText = node.Attributes?["length"]?.Value;
+
+        return int.TryParse(offsetText, NumberStyles.Integer, CultureInfo.InvariantCulture, out offset)
+               && int.TryParse(lengthText, NumberStyles.Integer, CultureInfo.InvariantCulture, out length)
+               && offset >= 0
+               && length >= 0;
+    }
+
+    /// <summary>把字节位置换算为字符位置，并避开 UTF-8 多字节序列的中间位置。</summary>
+    private static int ByteOffsetToCharIndex(byte[] bytes, int byteOffset)
+    {
+        var limit = Math.Clamp(byteOffset, 0, bytes.Length);
+
+        while (limit > 0 && limit < bytes.Length && (bytes[limit] & 0xC0) == 0x80)
+        {
+            limit--;
+        }
+
+        return Utf8NoBom.GetCharCount(bytes, 0, limit);
     }
 
     private static void EnsureExecutable(string path)
@@ -132,16 +188,26 @@ public sealed class FormatService : IFormatService
             var mode = File.GetUnixFileMode(path);
             File.SetUnixFileMode(path, mode | UnixFileMode.UserExecute);
         }
-        catch
+        catch (Exception ex)
         {
-            using var chmod = Process.Start(new ProcessStartInfo
+            Trace.TraceError($"[FormatService] 设置可执行权限失败，改用 chmod: {ex.Message}");
+
+            try
             {
-                FileName = "/bin/chmod",
-                Arguments = $"+x \"{path}\"",
-                UseShellExecute = false,
-                CreateNoWindow = true
-            });
-            chmod?.WaitForExit();
+                using var chmod = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "/bin/chmod",
+                    ArgumentList = { "+x", path },
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+
+                chmod?.WaitForExit();
+            }
+            catch (Exception chmodEx)
+            {
+                Trace.TraceError($"[FormatService] chmod 执行失败: {chmodEx.Message}");
+            }
         }
     }
 }
