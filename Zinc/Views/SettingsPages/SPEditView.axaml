@@ -42,7 +42,7 @@
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>
                 <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF31B;}"
-                                             Header="自动分词"
+                                             Header="自动换行"
                                              Description="控制代码编辑器中行长度超出屏幕长度时的行为。">
                     <controls:FASettingsExpander.Footer>
                         <ToggleSwitch IsChecked="{Binding Settings.WordWrap}"/>
@@ -51,8 +51,8 @@
                 <Separator Margin="0 12 0 4" />
                 <controls1:IconText Glyph="&#xE1B5;" Text="格式化" Margin="0,0,0,8"/>
                 <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF31B;}"
-                                             Header="自动分词"
-                                             Description="控制代码编辑器中行长度超出屏幕长度时的行为。">
+                                             Header="自动格式化"
+                                             Description="输入分号后自动调用格式化，重新排版当前文件。">
                     <controls:FASettingsExpander.Footer>
                         <ToggleSwitch IsChecked="{Binding Settings.AutoFormatting}"/>
                     </controls:FASettingsExpander.Footer>

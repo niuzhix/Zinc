@@ -11,12 +11,13 @@
         <controls:FAFontIcon Glyph="{Binding Glyph, ElementName=Root}"
                              VerticalAlignment="Center"
                              FontSize="16"
-                             FontFamily="{StaticResource FluentIcons}"/>
+                             FontFamily="{StaticResource FluentIcons}"
+                             IsVisible="{Binding Glyph, ElementName=Root, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
         <TextBlock Text="{Binding Text, ElementName=Root}"
                    VerticalAlignment="Center"
                    LineSpacing="0"
                    Margin="0 0 0 -4"
                    x:Name="TextElement"
-                   IsVisible="{Binding Glyph, ElementName=Root, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                   IsVisible="{Binding Text, ElementName=Root, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
     </StackPanel>
 </UserControl>

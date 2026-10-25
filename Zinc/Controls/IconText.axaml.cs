@@ -6,13 +6,13 @@ namespace Zinc.Controls;
 
 public partial class IconText : UserControl
 {
-    public static readonly StyledProperty<string?> SymbolProperty = AvaloniaProperty.Register<IconText, string?>(
+    public static readonly StyledProperty<string?> GlyphProperty = AvaloniaProperty.Register<IconText, string?>(
         nameof(Glyph));
 
     public string? Glyph
     {
-        get => GetValue(SymbolProperty);
-        set => SetValue(SymbolProperty, value);
+        get => GetValue(GlyphProperty);
+        set => SetValue(GlyphProperty, value);
     }
 
     public static readonly StyledProperty<string> TextProperty = AvaloniaProperty.Register<IconText, string>(

@@ -1,14 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:compilerservices="using:System.Runtime.AboutrServices"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:models="using:Zinc.Core.Models"
-             xmlns:system="using:System"
              xmlns:vm="using:Zinc.ViewModels"
              xmlns:controls="using:FluentAvalonia.UI.Controls"
-             xmlns:controls1="using:Zinc.Controls"
-             xmlns:converters="using:Zinc.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Zinc.Views.SettingsPages.SPAboutView"
              x:DataType="vm:SPAboutViewModel">
@@ -35,9 +30,7 @@
                                 <TextBlock Text="开放源代码许可"/>
                             </HyperlinkButton>
                         </controls:FASettingsExpanderItem.Footer>
-                        <TextBlock Background="Transparent" >
-                            <Run Text="Copyright (c) 2025-"/><Run Text="{Binding Year, Source={x:Static system:DateTime.Now}, Mode=OneWay}" /> niuzhix
-                        </TextBlock>
+                        <TextBlock Background="Transparent" Text="{Binding CopyrightNotice}"/>
                     </controls:FASettingsExpanderItem>
                 </controls:FASettingsExpander>
             </StackPanel>

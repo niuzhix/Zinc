@@ -34,8 +34,7 @@
                              FontSize="{Binding Settings.EditorFontSize}"
                              ShowLineNumbers="{Binding Settings.ShowLineNumbers}"
                              WordWrap="{Binding Settings.WordWrap}"
-                             Options="{Binding EditorOptions}"
-                             SyntaxHighlighting="C++"/>
+                             Options="{Binding EditorOptions}"/>
             <Grid Grid.Column="1"
                   VerticalAlignment="Stretch"
                   Margin="5"
@@ -57,7 +56,9 @@
                     <Button Command="{Binding CompileAndJudgeCommand}">
                         <controls1:IconText Glyph="&#xEDB9;" Text="编译并运行"/>
                     </Button>
-                    <Button Command="{Binding FormatDocumentCommand}"/>
+                    <Button Command="{Binding FormatDocumentCommand}">
+                        <controls1:IconText Glyph="&#xE1B5;" Text="格式化"/>
+                    </Button>
                 </StackPanel>
                 <TextBox Grid.Row="1"
                          HorizontalAlignment="Stretch"
@@ -92,7 +93,7 @@
                                  ItemsSource="{Binding TestCases}"
                                  SelectedItem="{Binding SelectedTestCase}">
                             <ListBox.ItemTemplate>
-                                <DataTemplate DataType="models:TestCase">
+                                <DataTemplate x:DataType="models:TestCase" DataType="models:TestCase">
                                     <Ellipse Width="10" Height="10"
                                              VerticalAlignment="Center"
                                              Fill="{Binding Result, Converter={StaticResource ResultToBrush}}"/>
@@ -104,7 +105,7 @@
                                         Margin="8,0,0,0"
                                         Content="{Binding SelectedTestCase}">
                             <ContentControl.ContentTemplate>
-                                <DataTemplate DataType="models:TestCase">
+                                <DataTemplate x:DataType="models:TestCase" DataType="models:TestCase">
                                     <Grid RowSpacing="8" ColumnSpacing="8">
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
