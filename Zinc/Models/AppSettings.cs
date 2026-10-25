@@ -57,6 +57,7 @@ public class AppSettings : ObservableObjects
     private bool _wordWrap = false;
     private bool _cutCopyWholeLine = true;
     private bool _autoFormatting = true;
+    private FormatStyles _formatStyle = FormatStyles.Microsoft;
 
     public int Theme
     {
@@ -164,5 +165,11 @@ public class AppSettings : ObservableObjects
     {
         get => _autoFormatting;
         set => SetProperty(ref _autoFormatting, value);
+    }
+
+    public FormatStyles FormatStyle
+    {
+        get => _formatStyle;
+        set => SetProperty(ref _formatStyle, value);
     }
 }

@@ -426,7 +426,7 @@ public partial class EditorViewModel : ObservableObject, IDisposable
         if (editor?.Document is null) return;
 
         var oldCaret = editor.CaretOffset;
-        var result = await _formatService.FormatAsync(editor.Document.Text, offset: oldCaret);
+        var result = await _formatService.FormatAsync(editor.Document.Text,Settings.FormatStyle ,oldCaret);
         if (!result.Success) return;
 
         // 期间可能已切换编辑器/标签页，或文档已被替换
@@ -464,7 +464,7 @@ public partial class EditorViewModel : ObservableObject, IDisposable
         var selected = editor.Document.GetText(start, length);
         var caretInSelection = editor.CaretOffset - start;
 
-        var result = await _formatService.FormatAsync(selected, offset: caretInSelection);
+        var result = await _formatService.FormatAsync(selected,Settings.FormatStyle , caretInSelection);
         if (!result.Success) return;
         if (!ReferenceEquals(_editor, editor)) return;
 

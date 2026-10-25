@@ -12,6 +12,7 @@ namespace Zinc.ViewModels;
 
 public partial class SPEditViewModel(ISettingsService<AppSettings> settingsService) : ObservableObject
 {
+    public Array FormatStylesOptions => Enum.GetValues<FormatStyles>();
 
     private readonly ISettingsService<AppSettings> _settingsService = settingsService;
 

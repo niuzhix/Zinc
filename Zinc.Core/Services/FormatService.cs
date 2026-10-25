@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using Zinc.Core.Abstractions;
+using Zinc.Core.Models;
 
 namespace Zinc.Core.Services;
 
@@ -38,7 +39,7 @@ public sealed class FormatService : IFormatService
             _initError = $"clang-format 不存在: {_path}";
     }
 
-    public async Task<FormatResult> FormatAsync(string sourceCode, string style = DefaultStyle, int offset = -1)
+    public async Task<FormatResult> FormatAsync(string sourceCode, FormatStyles style, int offset = -1)
     {
         if (_initError is not null)
             return FormatResult.Fail(_initError);
@@ -59,7 +60,7 @@ public sealed class FormatService : IFormatService
             StandardErrorEncoding = Utf8NoBom
         };
 
-        psi.ArgumentList.Add($"--style={style}");
+        psi.ArgumentList.Add($"--style={style.ToString()}");
         psi.ArgumentList.Add($"--assume-filename={AssumeFileName}");
         psi.ArgumentList.Add($"--cursor={byteOffset.ToString(CultureInfo.InvariantCulture)}");
         psi.ArgumentList.Add("-output-replacements-xml");

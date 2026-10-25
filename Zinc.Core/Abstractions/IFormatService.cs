@@ -1,8 +1,10 @@
-﻿namespace Zinc.Core.Abstractions;
+﻿using Zinc.Core.Models;
+
+namespace Zinc.Core.Abstractions;
 
 public interface IFormatService
 {
-    Task<FormatResult> FormatAsync(string sourceCode, string style = "file", int offset = -1);
+    Task<FormatResult> FormatAsync(string sourceCode, FormatStyles style, int offset = -1);
 }
 
 public sealed record FormatResult(bool Success, string Text, int CursorOffset = 0, string? Error = null)
