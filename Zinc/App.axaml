@@ -23,6 +23,7 @@
 		<SolidColorBrush x:Key="ACBrush" Color="#00CC00"/>
 		<SolidColorBrush x:Key="WABrush" Color="#FF0000"/>
 		<SolidColorBrush x:Key="TLEBrush" Color="#FFA500"/>
+		<SolidColorBrush x:Key="MLEBrush" Color="#9370DB"/>
 		<SolidColorBrush x:Key="REBrush" Color="#FF00FF"/>
 		<SolidColorBrush x:Key="CEBrush" Color="#0000FF"/>
 		<SolidColorBrush x:Key="UKEBrush" Color="#808080"/>

@@ -8,25 +8,33 @@ using Zinc.Core.Models;
 
 namespace Zinc.Converters;
 
-public class JudgeResultToBrushConverter : IValueConverter
+public sealed class JudgeResultToBrushConverter : IValueConverter
 {
-    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    private const string FallbackBrushKey = "UKEBrush";
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is JudgeResult result)
+        var resourceKey = value switch
         {
-            return result switch
-            {
-                JudgeResult.AC => Application.Current.FindResource("ACBrush") as IBrush,
-                JudgeResult.WA => Application.Current.FindResource("WABrush") as IBrush,
-                JudgeResult.TLE => Application.Current.FindResource("TLEBrush") as IBrush,
-                JudgeResult.RE => Application.Current.FindResource("REBrush") as IBrush,
-                JudgeResult.CE => Application.Current.FindResource("CEBrush") as IBrush,
-                _ => Application.Current.FindResource("UKEBrush") as IBrush
-            };
+            JudgeResult.AC => "ACBrush",
+            JudgeResult.WA => "WABrush",
+            JudgeResult.TLE => "TLEBrush",
+            JudgeResult.MLE => "MLEBrush",
+            JudgeResult.RE => "REBrush",
+            JudgeResult.CE => "CEBrush",
+            _ => FallbackBrushKey
+        };
+
+        if (Application.Current is { } app
+            && app.TryFindResource(resourceKey, out object? resource)
+            && resource is IBrush brush)
+        {
+            return brush;
         }
+
         return Brushes.Gray;
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        => throw new NotImplementedException();
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException($"{nameof(JudgeResultToBrushConverter)} 不支持反向转换。");
 }
