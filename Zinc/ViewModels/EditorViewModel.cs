@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
+using AvaloniaEdit.TextMate;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
@@ -12,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TextMateSharp.Grammars;
 using Zinc.Abstractions;
 using Zinc.Core.Abstractions;
 using Zinc.Core.Models;
@@ -207,6 +209,8 @@ public partial class EditorViewModel : ObservableObject, IDisposable
         }
 
         _editor.TextArea.TextEntering += OnTextEntering;
+
+        _initEditor();
     }
     public void DetachEditor(TextEditor editor)
     {
@@ -578,6 +582,17 @@ public partial class EditorViewModel : ObservableObject, IDisposable
 
         if (!string.IsNullOrEmpty(result.ErrorOutput))
             AppendRawLog($"=== 错误输出 ===\n{result.ErrorOutput}");
+    }
+
+    #endregion
+
+    #region Theme
+
+    private void _initEditor()
+    {
+        var registryOptions = new RegistryOptions(ThemeName.DarkPlus);
+        var installation = _editor.InstallTextMate(registryOptions);
+        installation.SetGrammar(registryOptions.GetScopeByLanguageId(registryOptions.GetLanguageByExtension(".cpp").Id));
     }
 
     #endregion
