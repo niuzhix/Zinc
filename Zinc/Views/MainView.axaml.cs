@@ -25,6 +25,7 @@ public partial class MainView : UserControl
         if (DataContext is MainViewModel vm && args.Item is EditorViewModel editor)
         {
             vm.CloseTab(editor);
+            editor.Dispose();
         }
     }
 }
