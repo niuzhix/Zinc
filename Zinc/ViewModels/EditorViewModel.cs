@@ -148,6 +148,8 @@ public partial class EditorViewModel : ObservableObject, IDisposable
         _settingsService.SettingsChanged += OnSettingsChanged;
     }
 
+    public override string ToString() => Header;
+
     private void OnContentChanged(TextDocument? oldValue, TextDocument? newValue)
     {
         if (oldValue is not null)

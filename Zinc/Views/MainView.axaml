@@ -48,17 +48,16 @@
               CloseButtonOverlayMode="OnPointerOver"
               CanReorderTabs="True"
               CanDragTabs="True">
-			<ui:FATabView.TabItemTemplate>
-				<DataTemplate DataType="vm:EditorViewModel">
-					<ui:FATabViewItem Header="{Binding Header}">
-						<ui:FATabViewItem.ContentTemplate>
-							<DataTemplate>
-								<views:EditorView/>
-							</DataTemplate>
-						</ui:FATabViewItem.ContentTemplate>
-					</ui:FATabViewItem>
-				</DataTemplate>
-			</ui:FATabView.TabItemTemplate>
+			<ui:FATabView.Styles>
+				<Style Selector="ui|FATabViewItem" x:DataType="vm:EditorViewModel">
+					<Setter Property="Header" Value="{Binding Header}" />
+					<Setter Property="ContentTemplate">
+						<DataTemplate>
+							<views:EditorView />
+						</DataTemplate>
+					</Setter>
+				</Style>
+			</ui:FATabView.Styles>
         </ui:FATabView>
 	</Grid>
 </UserControl>
