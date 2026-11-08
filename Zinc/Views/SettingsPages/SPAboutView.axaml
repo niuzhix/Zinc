@@ -2,8 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:navhyperlink="using:Zinc.Controls.NavHyperlink"
              xmlns:vm="using:Zinc.ViewModels"
              xmlns:controls="using:FluentAvalonia.UI.Controls"
+             xmlns:controls1="using:Zinc.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Zinc.Views.SettingsPages.SPAboutView"
              x:DataType="vm:SPAboutViewModel">
@@ -24,6 +26,9 @@
                                    FontSize="12"
                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
                     </controls:FASettingsExpander.Footer>
+                    <controls:FASettingsExpander.IconSource>
+                        <controls:FAImageIconSource Source="/Assets/splash.png"/>
+                    </controls:FASettingsExpander.IconSource>
                     <controls:FASettingsExpanderItem Description="本项目基于 GNU Affero General Public License v3.0 获得许可。">
                         <controls:FASettingsExpanderItem.Footer>
                             <HyperlinkButton Click="SettingsExpanderItemShowOssLicense_OnClick">
@@ -31,6 +36,49 @@
                             </HyperlinkButton>
                         </controls:FASettingsExpanderItem.Footer>
                         <TextBlock Background="Transparent" Text="{Binding CopyrightNotice}"/>
+                    </controls:FASettingsExpanderItem>
+                    <controls:FASettingsExpanderItem Content="常用链接">
+                        <controls:FASettingsExpanderItem.Footer>
+                            <WrapPanel Classes="animated-resize">
+                                <WrapPanel.Styles>
+                                    <Style Selector="HyperlinkButton">
+                                        <Setter Property="Padding" Value="4"/>
+                                        <Setter Property="Margin" Value="2"/>
+                                    </Style>
+                                </WrapPanel.Styles>
+                                <HyperlinkButton Click="UriNavigationCommands_OnClick"
+                                                 CommandParameter="https://zinc.niuzhix.dpdns.org">
+                                    <TextBlock Text="帮助文档"/>
+                                </HyperlinkButton>
+                                <HyperlinkButton Click="UriNavigationCommands_OnClick"
+                                                 CommandParameter="https://github.com/niuzhix/Zinc">
+                                    <TextBlock Text="GitHub"/>
+                                </HyperlinkButton>
+                            </WrapPanel>
+                        </controls:FASettingsExpanderItem.Footer>
+                    </controls:FASettingsExpanderItem>
+                </controls:FASettingsExpander>
+                <controls:FASettingsExpander Header="遇到问题？"
+                                             IsExpanded="True"
+                                             IconSource="{controls1:FluentIconSource &#xE3F6;}">
+                    <controls:FASettingsExpanderItem
+                        Click="UriNavigationCommands_OnClick"
+                        CommandParameter="https://github.com/niuzhix/Zinc/issues/"
+                        Content="问题反馈/功能建议"
+                        ActionIconSource="{controls1:FluentIconSource &#xEC2E;}"
+                        IsClickEnabled="True"/>
+                </controls:FASettingsExpander>
+
+                <controls:FASettingsExpander Header="鸣谢" IconSource="{controls1:FluentIconSource &#xE971;}"
+                                             IsExpanded="True">
+                    <controls:FASettingsExpanderItem>
+                        <SelectableTextBlock LineHeight="30" Margin="0 0 0 0" FontSize="14" TextWrapping="Wrap">
+                            界面主题和部分控件使用了 FluentAvalonia 框架。<LineBreak/>
+                            应用字体使用了华为出品的 HarmonyOS Sans 以及 Fira Code。<LineBreak/>
+                            感谢协助本应用测试的同学。<LineBreak/>
+                            特别感谢 WangZiCh 协助测试。<LineBreak/>
+                            感谢其他使用的第三方库和贡献成员，详见贡献名单和第三方库。
+                        </SelectableTextBlock>
                     </controls:FASettingsExpanderItem>
                 </controls:FASettingsExpander>
             </StackPanel>
