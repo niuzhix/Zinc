@@ -44,22 +44,25 @@
                     <RowDefinition Height="0.35*"/>
                     <RowDefinition Height="0.65*"/>
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0"
-                            Orientation="Horizontal"
-                            Spacing="8">
-                    <Button Command="{Binding CompileCommand}">
-                        <controls1:IconText Glyph="&#xE423;" Text="编译"/>
-                    </Button>
-                    <Button Command="{Binding JudgeCommand}">
-                        <controls1:IconText Glyph="&#xE130;" Text="运行样例"/>
-                    </Button>
-                    <Button Command="{Binding CompileAndJudgeCommand}">
-                        <controls1:IconText Glyph="&#xEDB9;" Text="编译并运行"/>
-                    </Button>
-                    <Button Command="{Binding FormatDocumentCommand}">
-                        <controls1:IconText Glyph="&#xE1B5;" Text="格式化"/>
-                    </Button>
-                </StackPanel>
+                <controls:FACommandBar Grid.Row="0"
+                                       DefaultLabelPosition="Right"
+                                       OverflowButtonVisibility="Auto">
+                    <controls:FACommandBar.PrimaryCommands>
+                        <controls:FACommandBarButton Command="{Binding CompileCommand}"
+                                                     IconSource="{controls1:FluentIconSource &#xe423;}"
+                                                     Label="编译"/>
+                        <controls:FACommandBarButton Command="{Binding JudgeCommand}"
+                                                     IconSource="{controls1:FluentIconSource &#xe130;}"
+                                                     Label="运行样例"/>
+                        <controls:FACommandBarButton Command="{Binding CompileAndJudgeCommand}"
+                                                     IconSource="{controls1:FluentIconSource &#xedb9;}"
+                                                     Label="编译并运行"/>
+                        <controls:FACommandBarSeparator/>
+                        <controls:FACommandBarButton Command="{Binding FormatDocumentCommand}"
+                                                     IconSource="{controls1:FluentIconSource &#xe1b5;}"
+                                                     Label="格式化"/>
+                    </controls:FACommandBar.PrimaryCommands>
+                </controls:FACommandBar>
                 <TextBox Grid.Row="1"
                          HorizontalAlignment="Stretch"
                          AcceptsReturn="True"
@@ -72,16 +75,24 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
-                        <Button Command="{Binding AddTestCaseCommand}">
-                            <controls1:IconText Glyph="&#xE00D;" Text="添加测试点"/>
-                        </Button>
-                        <Button Command="{Binding RemoveTestCaseCommand}">
-                            <controls1:IconText Glyph="&#xE61D;" Text="删除当前"/>
-                        </Button>
-                        <TextBlock VerticalAlignment="Center"
-                                   Text="{Binding TestCases.Count, StringFormat='共 {0} 个测试点'}"/>
-                    </StackPanel>
+                    <controls:FACommandBar Grid.Row="0"
+                                           DefaultLabelPosition="Right"
+                                           OverflowButtonVisibility="Auto">
+
+                        <controls:FACommandBar.PrimaryCommands>
+                            <controls:FACommandBarButton Command="{Binding AddTestCaseCommand}"
+                                                         IconSource="{controls1:FluentIconSource &#xe00d;}"
+                                                         Label="添加测试点"/>
+                            <controls:FACommandBarButton Command="{Binding RemoveTestCaseCommand}"
+                                                         IconSource="{controls1:FluentIconSource &#xe61d;}"
+                                                         Label="删除当前"/>
+                        </controls:FACommandBar.PrimaryCommands>
+                        <controls:FACommandBar.Content>
+                            <TextBlock VerticalAlignment="Center"
+                                       Margin="0,17"
+                                       Text="{Binding TestCases.Count, StringFormat='共 {0} 个测试点'}"/>
+                        </controls:FACommandBar.Content>
+                    </controls:FACommandBar>
 
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
@@ -101,9 +112,12 @@
                             </ListBox.ItemTemplate>
                         </ListBox>
 
+                        
+
                         <ContentControl Grid.Column="1"
                                         Margin="8,0,0,0"
-                                        Content="{Binding SelectedTestCase}">
+                                        Content="{Binding SelectedTestCase}"
+                                        IsVisible="{Binding SelectedTestCase, Converter={x:Static ObjectConverters.IsNotNull}}">
                             <ContentControl.ContentTemplate>
                                 <DataTemplate x:DataType="models:TestCase" DataType="models:TestCase">
                                     <Grid RowSpacing="8" ColumnSpacing="8">
