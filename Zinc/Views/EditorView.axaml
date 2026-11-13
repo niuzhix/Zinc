@@ -112,7 +112,17 @@
                             </ListBox.ItemTemplate>
                         </ListBox>
 
-                        
+                        <StackPanel Grid.Column="1"
+                                   Margin="8,0,0,0"
+                                   Spacing="8"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   IsVisible="{Binding SelectedTestCase, Converter={x:Static ObjectConverters.IsNull}}">
+                            <TextBlock HorizontalAlignment="Center" Text="暂无测试点"/>
+                            <Button Command="{Binding AddTestCaseCommand}">
+                                <controls1:IconText Glyph="&#xe00d;" Text="添加测试点"/>
+                            </Button>
+                        </StackPanel>
 
                         <ContentControl Grid.Column="1"
                                         Margin="8,0,0,0"
