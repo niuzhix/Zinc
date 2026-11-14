@@ -47,7 +47,8 @@
               TabWidthMode="Equal"
               CloseButtonOverlayMode="OnPointerOver"
               CanReorderTabs="True"
-              CanDragTabs="True">
+              CanDragTabs="True"
+			  TabStripLocation="{Binding Settings.TabPositon}">
 			<ui:FATabView.Styles>
 				<Style Selector="ui|FATabViewItem" x:DataType="vm:EditorViewModel">
 					<Setter Property="Header" Value="{Binding Header}" />

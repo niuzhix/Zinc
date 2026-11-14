@@ -1,4 +1,5 @@
 ﻿using Avalonia.Media;
+using FluentAvalonia.UI.Controls;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -43,6 +44,7 @@ public class AppSettings : ObservableObjects
     private bool _isCustomThemeColorEnabled = false;
     private Color _themeColor;
     private double _opacity = 1;
+    private FATabViewTabStripLocation _tabPosition = FATabViewTabStripLocation.Top;
     private FontFamily _editorFont = new("avares://Zinc/Assets/Fonts/FiraCode.ttf#Fira Code");
     private FontWeight _editorFontWeight = FontWeight.Medium;
     private double _editorFontSize = 16;
@@ -81,6 +83,12 @@ public class AppSettings : ObservableObjects
     {
         get => _opacity;
         set => SetProperty(ref _opacity, value);
+    }
+
+    public FATabViewTabStripLocation TabPositon
+    {
+        get => _tabPosition;
+        set => SetProperty(ref _tabPosition, value);
     }
 
     public FontFamily EditorFont

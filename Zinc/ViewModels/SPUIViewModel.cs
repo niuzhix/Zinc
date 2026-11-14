@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using FluentAvalonia.UI.Controls;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -23,6 +24,8 @@ public partial class SPUIViewModel : ObservableObject
         }
 
         EnsureFontInList(SelectedFont);
+
+        _selectedTabPosition = TabPositionOptions.FirstOrDefault(o => o.Key == Settings.TabPositon);
     }
 
     [ObservableProperty]
@@ -34,6 +37,44 @@ public partial class SPUIViewModel : ObservableObject
     public ObservableCollection<FontFamily> FontFamilies { get; } = new();
 
     public IReadOnlyList<FontWeight> AvailableFontWeights => EditorFontResolver.AvailableWeights;
+
+    public IReadOnlyList<KeyValuePair<FATabViewTabStripLocation, string>> TabPositionOptions { get; } =
+    [
+        new(FATabViewTabStripLocation.Top, "顶部"),
+        new(FATabViewTabStripLocation.Bottom, "底部"),
+        new(FATabViewTabStripLocation.Left, "左侧"),
+        new(FATabViewTabStripLocation.Right, "右侧"),
+    ];
+
+    private KeyValuePair<FATabViewTabStripLocation, string> _selectedTabPosition;
+    public KeyValuePair<FATabViewTabStripLocation, string> SelectedTabPosition
+    {
+        get => _selectedTabPosition;
+        set
+        {
+            if (SetProperty(ref _selectedTabPosition, value))
+                TabPositon = value.Key;
+        }
+    }
+    public FATabViewTabStripLocation TabPositon
+    {
+        get => Settings.TabPositon;
+        set
+        {
+            if (Settings.TabPositon == value) return;
+
+            Settings.TabPositon = value;
+
+            OnPropertyChanged(nameof(TabPositon));
+
+            var newSelected = TabPositionOptions.FirstOrDefault(o => o.Key == value);
+            if (_selectedTabPosition.Key != newSelected.Key || _selectedTabPosition.Value != newSelected.Value)
+            {
+                _selectedTabPosition = newSelected;
+                OnPropertyChanged(nameof(SelectedTabPosition));
+            }
+        }
+    }
 
     /// <summary>当前生效的字体：显示用已解析结果，不写回设置；只有用户选择时才持久化。</summary>
     public FontFamily SelectedFont

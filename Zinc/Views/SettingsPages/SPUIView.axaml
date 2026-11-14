@@ -58,6 +58,22 @@
                             IsSnapToTickEnabled="True"/>
                     </controls:FASettingsExpander.Footer>
                 </controls:FASettingsExpander>
+                <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF37D;}"
+                                             Header="选项卡位置"
+                                             Description="控制选项卡的位置，推荐使用“顶端”以获得最佳体验。">
+                    <controls:FASettingsExpander.Footer>
+                        <ComboBox ItemsSource="{Binding TabPositionOptions}"
+                                  SelectedItem="{Binding SelectedTabPosition}"
+                                  MaxDropDownHeight="360"
+                                  HorizontalAlignment="Left">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock VerticalAlignment="Center" Text="{Binding Value}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </controls:FASettingsExpander.Footer>
+                </controls:FASettingsExpander>
                 <Separator Margin="0 16 0 8" />
                 <controls1:IconText Glyph="&#xF26F;" Text="字体" Margin="0 0 0 8" />
                 <controls:FASettingsExpander IconSource="{controls1:FluentIconSource &#xF271;}"

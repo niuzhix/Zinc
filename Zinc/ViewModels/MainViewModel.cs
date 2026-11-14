@@ -17,6 +17,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private readonly IFileService _fileService;
     private readonly IEditorViewModelFactory _editorFactory;
+    private readonly ISettingsService<AppSettings> _settingsService;
     private readonly IWindowService _windowService;
 
     private readonly IReadOnlyList<FileFilter> _filters =
@@ -35,11 +36,13 @@ public partial class MainViewModel : ObservableObject
         IDialogService dialogService,
         IFileService fileService,
         IEditorViewModelFactory editorFactory,
-        IWindowService windowService)
+        IWindowService windowService,
+        ISettingsService<AppSettings> settingsService)
     {
         _dialogService = dialogService;
         _fileService = fileService;
         _editorFactory = editorFactory;
+        _settingsService = settingsService;
         _windowService = windowService;
 
         AddNewTab();
@@ -109,4 +112,6 @@ public partial class MainViewModel : ObservableObject
     {
         return SelectedItem?.SaveAsAsync() ?? Task.CompletedTask;
     }
+    public AppSettings Settings => _settingsService.Current;
+
 }
