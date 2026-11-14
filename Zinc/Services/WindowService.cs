@@ -42,7 +42,7 @@ public sealed class WindowService : IWindowService
         }
         else
         {
-            window.Show(owner);
+            window.ShowDialog(owner);
         }
     }
 
