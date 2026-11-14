@@ -94,15 +94,21 @@ jobs:
       - name: Archive
         shell: pwsh
         run: |
-          $out = "Zinc_app_${{ matrix.os }}_${{ matrix.arch }}_${{ steps.ver.outputs.version }}_selfContained.zip"
-          Compress-Archive -Path ./publish/* -DestinationPath $out
-          Write-Host "Created $out"
+          if ('${{ matrix.os }}' -eq 'linux') {
+            $out = "Zinc_app_${{ matrix.os }}_${{ matrix.arch }}_${{ steps.ver.outputs.version }}_selfContained.tar.gz"
+            tar -czf $out -C ./publish .
+            Write-Host "Created $out"
+          } else {
+            $out = "Zinc_app_${{ matrix.os }}_${{ matrix.arch }}_${{ steps.ver.outputs.version }}_selfContained.zip"
+            Compress-Archive -Path ./publish/* -DestinationPath $out
+            Write-Host "Created $out"
+          }
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-${{ matrix.arch }}
-          path: Zinc_app_${{ matrix.os }}_${{ matrix.arch }}_${{ steps.ver.outputs.version }}_selfContained.zip
+          path: Zinc_app_${{ matrix.os }}_${{ matrix.arch }}_${{ steps.ver.outputs.version }}_selfContained.*
 
   release:
     name: Create Release
